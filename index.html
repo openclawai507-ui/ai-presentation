@@ -1,0 +1,2962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Mastery</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #070b14;
+      --surface: rgba(255, 255, 255, .05);
+      --border: rgba(255, 255, 255, .09);
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --green: #10b981;
+      --orange: #f59e0b;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #a78bfa;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      user-select: none
+    }
+
+    /* ── PROGRESS BAR ── */
+    #prog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--purple), var(--pink));
+      transition: width .5s cubic-bezier(.4, 0, .2, 1);
+      z-index: 300;
+      box-shadow: 0 0 12px var(--purple)
+    }
+
+    /* ── SLIDE WRAPPER ── */
+    .slide {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden
+    }
+
+    .slide.active {
+      display: flex;
+      animation: fadeIn .45s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* ── AMBIENT ORBS ── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      opacity: .18
+    }
+
+    /* ── BOTTOM NAV ── */
+    #nav {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 200;
+      background: rgba(10, 14, 26, .8);
+      padding: 8px 14px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      backdrop-filter: blur(16px);
+      max-width: 90vw;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    #nav::-webkit-scrollbar { display: none; }
+
+    .nb {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .72rem;
+      padding: 6px 11px;
+      border-radius: 18px;
+      transition: .2s;
+      white-space: nowrap;
+      font-family: inherit
+    }
+
+    .nb:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, .07)
+    }
+
+    .nb.on {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      box-shadow: 0 2px 16px rgba(139, 92, 246, .4)
+    }
+
+    #ctr {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      font-size: .72rem;
+      color: var(--muted);
+      z-index: 200;
+      background: rgba(10, 14, 26, .6);
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border)
+    }
+
+    /* ── SLIDE HEADER ── */
+    .sh {
+      padding: 22px 36px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0
+    }
+
+    .si {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0
+    }
+
+    .st {
+      font-size: clamp(1.1rem, 2vw, 1.6rem);
+      font-weight: 700;
+      color: #fff
+    }
+
+    .sd {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .sc {
+      flex: 1;
+      padding: 0 36px 76px;
+      overflow-y: auto;
+      overflow-x: hidden
+    }
+
+    .sc::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .sc::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 4px
+    }
+
+    /* ── GRID HELPERS ── */
+    .g {
+      display: grid;
+      gap: 12px
+    }
+
+    .g2 {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+    }
+
+    .g3 {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr))
+    }
+
+    .g4 {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      transition: .25s;
+      cursor: default
+    }
+
+    .card:hover {
+      background: rgba(255, 255, 255, .08);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .4)
+    }
+
+    .ci {
+      font-size: 1.6rem;
+      margin-bottom: 8px
+    }
+
+    .ct {
+      font-size: .88rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      margin-bottom: 5px
+    }
+
+    .cb {
+      font-size: .76rem;
+      color: #94a3b8;
+      line-height: 1.55
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: .65rem;
+      padding: 3px 9px;
+      border-radius: 9px;
+      margin-top: 7px;
+      font-weight: 700;
+      letter-spacing: .03em
+    }
+
+    .bb {
+      background: rgba(59, 130, 246, .25);
+      color: #93c5fd
+    }
+
+    .bp {
+      background: rgba(139, 92, 246, .25);
+      color: #c4b5fd
+    }
+
+    .bg {
+      background: rgba(16, 185, 129, .25);
+      color: #6ee7b7
+    }
+
+    .bo {
+      background: rgba(245, 158, 11, .25);
+      color: #fcd34d
+    }
+
+    .bpk {
+      background: rgba(236, 72, 153, .25);
+      color: #f9a8d4
+    }
+
+    .bc {
+      background: rgba(6, 182, 212, .25);
+      color: #67e8f9
+    }
+
+    /* ── DIVIDER ── */
+    .div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 14px 0 10px
+    }
+
+    .dl {
+      flex: 1;
+      height: 1px;
+      background: var(--border)
+    }
+
+    .dl-txt {
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #334155;
+      white-space: nowrap
+    }
+
+    /* ── HERO ── */
+    #s1 {
+      background: radial-gradient(ellipse at 30% 40%, #0d1b3e, var(--bg) 70%);
+      align-items: center;
+      justify-content: center;
+      text-align: center
+    }
+
+    .htitle {
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 14px;
+      animation: gradAnim 5s ease infinite alternate
+    }
+
+    @keyframes gradAnim {
+      0% {
+        filter: hue-rotate(0deg)
+      }
+
+      100% {
+        filter: hue-rotate(20deg)
+      }
+    }
+
+    .hsub {
+      font-size: clamp(.85rem, 1.8vw, 1.15rem);
+      color: #7c8db5;
+      max-width: 560px;
+      line-height: 1.65;
+      margin-bottom: 32px
+    }
+
+    .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 680px;
+      margin-bottom: 32px
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .1);
+      padding: 5px 14px;
+      border-radius: 18px;
+      font-size: .75rem;
+      color: #94a3b8;
+      transition: .2s;
+      cursor: pointer
+    }
+
+    .tag:hover {
+      background: rgba(139, 92, 246, .2);
+      border-color: var(--purple);
+      color: #c4b5fd
+    }
+
+    .btn-cta {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      border: none;
+      padding: 13px 34px;
+      border-radius: 28px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .25s;
+      box-shadow: 0 4px 28px rgba(139, 92, 246, .4);
+      font-family: inherit
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(139, 92, 246, .6)
+    }
+
+    /* ── HIERARCHY ── */
+    .hier {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0
+    }
+
+    .hl {
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: .85rem;
+      position: relative;
+      transition: .25s
+    }
+
+    .hl:hover {
+      transform: scale(1.02)
+    }
+
+    .hl .hsub2 {
+      font-size: .68rem;
+      font-weight: 400;
+      opacity: .75;
+      display: block;
+      margin-top: 2px
+    }
+
+    .hl .arrow {
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: .6rem;
+      color: #334155
+    }
+
+    .hl:last-child .arrow {
+      display: none
+    }
+
+    .h1 {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #bfdbfe;
+      width: 92%;
+      max-width: 460px
+    }
+
+    .h2 {
+      background: linear-gradient(135deg, #3730a3, #6366f1);
+      color: #c7d2fe;
+      width: 80%;
+      max-width: 380px
+    }
+
+    .h3 {
+      background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+      color: #ddd6fe;
+      width: 68%;
+      max-width: 300px
+    }
+
+    .h4 {
+      background: linear-gradient(135deg, #9d174d, #ec4899);
+      color: #fce7f3;
+      width: 56%;
+      max-width: 240px
+    }
+
+    /* ── ML TYPE CARDS ── */
+    .mlc {
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      transition: .25s
+    }
+
+    .mlc:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .5)
+    }
+
+    .mlc-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 7px
+    }
+
+    .mlc-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 5px
+    }
+
+    .mlc-body {
+      font-size: .76rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 10px
+    }
+
+    .etag {
+      font-size: .65rem;
+      padding: 3px 8px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .07);
+      color: #94a3b8;
+      display: inline-block;
+      margin: 2px
+    }
+
+    .algo-hint {
+      font-size: .67rem;
+      margin-top: 10px;
+      opacity: .75
+    }
+
+    /* ── NN DIAGRAM ── */
+    .nn-wrap {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 10px;
+      overflow-x: auto
+    }
+
+    .nn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 280px
+    }
+
+    .nc {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px
+    }
+
+    .nlbl {
+      font-size: .6rem;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 2px
+    }
+
+    .nd {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .58rem;
+      font-weight: 700;
+      transition: .2s;
+      cursor: default
+    }
+
+    .nd:hover {
+      transform: scale(1.2)
+    }
+
+    .ni {
+      background: rgba(59, 130, 246, .35);
+      border: 2px solid var(--blue);
+      color: #93c5fd
+    }
+
+    .nh {
+      background: rgba(139, 92, 246, .35);
+      border: 2px solid var(--purple);
+      color: #c4b5fd
+    }
+
+    .no {
+      background: rgba(16, 185, 129, .35);
+      border: 2px solid var(--green);
+      color: #6ee7b7
+    }
+
+    .nconn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 4px
+    }
+
+    .nl {
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(59, 130, 246, .3), rgba(139, 92, 246, .3))
+    }
+
+    /* ── TIMELINE ── */
+    .tl {
+      position: relative;
+      padding-left: 22px
+    }
+
+    .tl::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--blue), var(--purple), var(--pink))
+    }
+
+    .tli {
+      position: relative;
+      margin-bottom: 16px;
+      cursor: default
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: -19px;
+      top: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      transition: .2s
+    }
+
+    .tli:hover .tl-dot {
+      transform: scale(1.4)
+    }
+
+    .tl-yr {
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: .06em
+    }
+
+    .tl-t {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      margin-bottom: 3px
+    }
+
+    .tl-b {
+      font-size: .73rem;
+      color: #64748b;
+      line-height: 1.45
+    }
+
+    /* ── ALGO CARDS ── */
+    .ac {
+      background: rgba(255, 255, 255, .035);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      transition: .2s
+    }
+
+    .ac:hover {
+      background: rgba(255, 255, 255, .07);
+      transform: translateY(-2px)
+    }
+
+    .ac-cat {
+      font-size: .62rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 5px;
+      font-weight: 700
+    }
+
+    .ac-name {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      margin-bottom: 4px
+    }
+
+    .ac-use {
+      font-size: .72rem;
+      color: #64748b;
+      line-height: 1.4
+    }
+
+    /* ── USE CASE GRID ── */
+    .ucc {
+      border-radius: 13px;
+      padding: 16px 12px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, .06);
+      transition: .25s;
+      cursor: default
+    }
+
+    .ucc:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, .5)
+    }
+
+    .uci {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      display: block
+    }
+
+    .uct {
+      font-size: .82rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      margin-bottom: 4px
+    }
+
+    .ucb {
+      font-size: .7rem;
+      color: #64748b;
+      line-height: 1.4
+    }
+
+    /* ── GLOSSARY ── */
+    .gi {
+      background: rgba(255, 255, 255, .04);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 10px 10px 0;
+      padding: 11px 13px;
+      transition: .2s;
+      cursor: default
+    }
+
+    .gi:hover {
+      background: rgba(255, 255, 255, .07);
+      transform: translateX(3px)
+    }
+
+    .gt {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 3px
+    }
+
+    .gd {
+      font-size: .73rem;
+      color: #64748b;
+      line-height: 1.45
+    }
+
+    /* ── LLM TERMS ── */
+    .lt {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      transition: .2s;
+      cursor: default
+    }
+
+    .lt:hover {
+      background: rgba(255, 255, 255, .08);
+      transform: translateY(-2px)
+    }
+
+    .lt-term {
+      font-size: .8rem;
+      font-weight: 700;
+      margin-bottom: 4px
+    }
+
+    .lt-def {
+      font-size: .72rem;
+      color: #64748b;
+      line-height: 1.45
+    }
+
+    /* ── ETHICS ── */
+    .eth {
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      transition: .2s
+    }
+
+    .eth:hover {
+      transform: translateY(-2px)
+    }
+
+    .eth-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px
+    }
+
+    .eth-title {
+      font-size: .88rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 5px
+    }
+
+    .eth-body {
+      font-size: .75rem;
+      color: #94a3b8;
+      line-height: 1.5
+    }
+
+    /* ── QUIZ ── */
+    .quiz-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px
+    }
+
+    .q-card {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 32px;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto
+    }
+
+    .q-num {
+      font-size: .7rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px
+    }
+
+    .q-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 20px;
+      line-height: 1.5
+    }
+
+    .q-opts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px
+    }
+
+    .qo {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: .2s;
+      font-family: inherit;
+      color: var(--text);
+      text-align: left
+    }
+
+    .qo:hover:not(:disabled) {
+      background: rgba(139, 92, 246, .15);
+      border-color: var(--purple);
+      color: #c4b5fd
+    }
+
+    .qo.correct {
+      background: rgba(16, 185, 129, .2) !important;
+      border-color: var(--green) !important;
+      color: #6ee7b7 !important
+    }
+
+    .qo.wrong {
+      background: rgba(239, 68, 68, .2) !important;
+      border-color: #ef4444 !important;
+      color: #fca5a5 !important
+    }
+
+    .q-feedback {
+      font-size: .8rem;
+      min-height: 24px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.5
+    }
+
+    .q-nav {
+      display: flex;
+      gap: 10px;
+      justify-content: center
+    }
+
+    .qbtn {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      border: none;
+      padding: 9px 24px;
+      border-radius: 20px;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: .2s;
+      font-family: inherit;
+      font-weight: 600
+    }
+
+    .qbtn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, .4)
+    }
+
+    .qbtn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    .q-score {
+      text-align: center;
+      padding: 20px
+    }
+
+    .q-score-num {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text
+    }
+
+    .q-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, .08);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px
+    }
+
+    .q-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      transition: width .4s
+    }
+
+    /* ── TOOLTIP ── */
+    .tip {
+      position: relative;
+      cursor: help;
+      border-bottom: 1px dashed rgba(139, 92, 246, .4);
+      color: var(--accent)
+    }
+
+    .tip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: .7rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      z-index: 500;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .6);
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1.4;
+      max-width: 220px;
+      white-space: normal;
+      text-align: center
+    }
+
+    @media(max-width:640px) {
+      .sc {
+        padding: 0 14px 76px
+      }
+
+      .sh {
+        padding: 16px 14px 8px
+      }
+
+      #nav .nb {
+        font-size: .6rem;
+        padding: 5px 7px
+      }
+
+      .g2,
+      .g3,
+      .g4 {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    /* ── PARTICLES ── */
+    .particle { position:absolute; border-radius:50%; pointer-events:none; animation:float linear infinite }
+    @keyframes float { 0%{transform:translateY(0) rotate(0deg);opacity:.7} 100%{transform:translateY(-110vh) rotate(720deg);opacity:0} }
+
+    /* ── ANIMATED COUNTER ── */
+    .count-num { font-size:3rem; font-weight:900; background:linear-gradient(135deg,#10b981,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; display:inline-block }
+
+    /* ── INFOGRAPHIC BARS ── */
+    .ibar-wrap { margin:10px 0 }
+    .ibar-label { font-size:.78rem; color:#94a3b8; margin-bottom:4px; display:flex; justify-content:space-between }
+    .ibar-bg { height:18px; background:rgba(255,255,255,.06); border-radius:9px; overflow:hidden }
+    .ibar-fill { height:100%; border-radius:9px; width:0; transition:width 1.2s cubic-bezier(.4,0,.2,1) }
+
+    /* ── MATCH GAME ── */
+    .match-game { display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:700px; margin:0 auto }
+    .mg-col { display:flex; flex-direction:column; gap:8px }
+    .mg-item { background:rgba(255,255,255,.06); border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; font-size:.83rem; cursor:pointer; transition:.2s; user-select:none }
+    .mg-item:hover { background:rgba(139,92,246,.18); border-color:var(--purple) }
+    .mg-item.selected { background:rgba(59,130,246,.25); border-color:var(--blue); color:#93c5fd }
+    .mg-item.matched { background:rgba(16,185,129,.18); border-color:var(--green); color:#6ee7b7; cursor:default }
+    .mg-item.wrong { background:rgba(239,68,68,.18); border-color:#ef4444; animation:shake .4s }
+    .mg-score { text-align:center; font-size:1.1rem; font-weight:700; color:#a78bfa; margin-top:12px }
+
+    /* ── DRAG GAME ── */
+    .drag-zone { border:2px dashed var(--border); border-radius:12px; padding:14px; min-height:90px; transition:.2s }
+    .drag-zone.over { border-color:var(--purple); background:rgba(139,92,246,.08) }
+    .draggable { background:rgba(255,255,255,.07); border:1.5px solid var(--border); border-radius:10px; padding:9px 14px; cursor:grab; font-size:.8rem; display:inline-block; margin:4px; transition:.2s; user-select:none }
+    .draggable:hover { background:rgba(96,165,250,.2); border-color:var(--blue) }
+    .draggable.drag-success { background:rgba(16,185,129,.2); border-color:var(--green); color:#6ee7b7 }
+
+    /* ── TIMELINE ANIMATED ── */
+    @keyframes pop { 0%{transform:scale(0);opacity:0} 80%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+    .tl-dot-anim { animation:pop .5s ease forwards; opacity:0 }
+
+    /* ── FLIP CARD ── */
+    .flip-card { perspective:900px; cursor:pointer; height:180px }
+    .flip-inner { position:relative; transform-style:preserve-3d; transition:transform .7s; height:100%; border-radius:14px }
+    .flip-card:hover .flip-inner, .flip-card.flipped .flip-inner { transform:rotateY(180deg) }
+    .flip-front, .flip-back { position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; text-align:center }
+    .flip-front { background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15)); border:1px solid rgba(255,255,255,.09) }
+    .flip-back { background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(6,182,212,.15)); border:1px solid rgba(16,185,129,.3); transform:rotateY(180deg) }
+    .flip-emoji { font-size:2rem; margin-bottom:8px }
+    .flip-title { font-size:.85rem; font-weight:700; color:#c7d2fe; margin-bottom:4px }
+    .flip-body { font-size:.72rem; color:#94a3b8; line-height:1.5 }
+
+    /* ── CONFETTI ── */
+    .confetti-piece { position:fixed; width:9px; height:14px; top:-20px; animation:confetti-fall linear forwards; z-index:9999; border-radius:3px }
+    @keyframes confetti-fall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+    /* ── TYPEWRITER ── */
+    .typewriter { font-family:'Courier New',monospace; border-right:2px solid var(--purple); padding-right:4px; animation:blink .7s step-end infinite }
+    @keyframes blink { 0%,100%{border-color:transparent} 50%{border-color:var(--purple)} }
+
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+    @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 rgba(16,185,129,0)} 50%{box-shadow:0 0 20px rgba(16,185,129,.4)} }
+
+    /* ── PYRAMID VISUAL ── */
+    .pyramid-row { display:flex; justify-content:center; margin:6px 0 }
+    .pyramid-block { height:52px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.82rem; text-align:center; padding:0 10px; transition:.25s; cursor:default }
+    .pyramid-block:hover { filter:brightness(1.2); transform:scale(1.04) }
+
+    /* ── REAL WORLD CARD ── */
+    .rw-card { border-radius:14px; padding:18px; border:1px solid var(--border); position:relative; overflow:hidden; transition:.25s }
+    .rw-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 60%,rgba(255,255,255,.03)); pointer-events:none }
+    .rw-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,.4) }
+    .rw-badge { font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; padding:3px 9px; border-radius:8px; display:inline-block; margin-bottom:8px }
+    .rw-company { font-size:.92rem; font-weight:800; color:#f1f5f9; margin-bottom:4px }
+    .rw-result { font-size:.75rem; color:#94a3b8; line-height:1.5 }
+    .rw-stat { font-size:1.5rem; font-weight:900; background:linear-gradient(135deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text }
+
+    /* ── SPIN WHEEL (Easter egg) ── */
+    .spin-btn { background:linear-gradient(135deg,#f59e0b,#ec4899); border:none; color:#fff; padding:10px 24px; border-radius:22px; font-weight:700; cursor:pointer; font-family:inherit; transition:.2s; font-size:.85rem }
+    .spin-btn:hover { transform:scale(1.05); box-shadow:0 4px 20px rgba(245,158,11,.4) }
+
+  </style>
+</head>
+
+<body>
+
+  <div id="prog"></div>
+  <div id="ctr">1 / 33</div>
+
+  <!-- ══════════════════════ S1 · HERO ══════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="orb" style="width:500px;height:500px;background:#3b82f6;top:-180px;left:-180px"></div>
+    <div class="orb" style="width:400px;height:400px;background:#8b5cf6;bottom:-120px;right:-120px"></div>
+    <div class="orb"
+      style="width:200px;height:200px;background:#ec4899;top:40%;left:50%;transform:translate(-50%,-50%)"></div>
+    <div class="htitle">AI & Machine Learning<br>Mastery Guide</div>
+    <div style="font-size:1rem;color:#6ee7b7;margin-bottom:18px;letter-spacing:.05em">&gt; <span id="tw1" class="typewriter"></span></div>
+    <p class="hsub">Your visual, interactive journey through Artificial Intelligence — from first principles to LLMs,
+      ethics, and real-world applications.</p>
+    <div class="tags">
+      <span class="tag" onclick="goTo(1)">🌐 AI Landscape</span>
+      <span class="tag" onclick="goTo(2)">⚙️ ML Types</span>
+      <span class="tag" onclick="goTo(3)">🔗 Neural Nets</span>
+      <span class="tag" onclick="goTo(4)">📊 Algorithms</span>
+      <span class="tag" onclick="goTo(5)">✨ LLMs & GenAI</span>
+      <span class="tag" onclick="goTo(6)">🧩 LLM Terminology</span>
+      <span class="tag" onclick="goTo(7)">🚀 Use Cases</span>
+      <span class="tag" onclick="goTo(9)">🧠 Quiz</span>
+    </div>
+    <button class="btn-cta" onclick="goTo(1)">Start Learning →</button>
+  </div>
+
+  <!-- ══════════════════════ S2 · LANDSCAPE ══════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-80px;right:-80px"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🌐</div>
+      <div>
+        <div class="st">The AI Landscape</div>
+        <div class="sd">How AI, ML, Deep Learning & GenAI nest inside each other</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1.1fr;gap:18px;align-items:start">
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">Hierarchy · Largest → Most Specific</span>
+            <div class="dl"></div>
+          </div>
+          <div class="hier">
+            <div class="hl h1">🌐 Artificial Intelligence<span class="hsub2">Making machines simulate human
+                intelligence</span><span class="arrow">▼</span></div>
+            <div class="hl h2">⚙️ Machine Learning<span class="hsub2">Systems that learn patterns from data</span><span
+                class="arrow">▼</span></div>
+            <div class="hl h3">🔗 Deep Learning<span class="hsub2">Multi-layered neural networks</span><span
+                class="arrow">▼</span></div>
+            <div class="hl h4">✨ Generative AI<span class="hsub2">Creates new text, images, code, audio</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">Key Distinctions</span>
+            <div class="dl"></div>
+          </div>
+          <div class="g g2" style="grid-template-columns:1fr">
+            <div class="card">
+              <div class="ci">🤖</div>
+              <div class="ct">Artificial Intelligence</div>
+              <div class="cb">Broadest field. Makes machines reason, plan, and solve problems. Includes expert systems,
+                rule-based AI, and modern learning systems.</div><span class="badge bb">Broadest</span>
+            </div>
+            <div class="card">
+              <div class="ci">📈</div>
+              <div class="ct">Machine Learning</div>
+              <div class="cb">Algorithms that improve automatically through experience — no explicit programming needed.
+                Model finds patterns in data.</div><span class="badge bp">Data-Driven</span>
+            </div>
+            <div class="card">
+              <div class="ci">🧠</div>
+              <div class="ct">Deep Learning</div>
+              <div class="cb">Neural networks with many layers. Powers image recognition, speech synthesis, and modern
+                NLP at massive scale.</div><span class="badge bpk">Neural Nets</span>
+            </div>
+            <div class="card">
+              <div class="ci">✨</div>
+              <div class="ct">Generative AI</div>
+              <div class="cb">Models that <i>create</i> new content. LLMs (text), Diffusion (images), Codex (code), Sora
+                (video).</div><span class="badge bo">Creates Content</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S3 · ML TYPES ══════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="orb" style="width:350px;height:350px;background:#8b5cf6;bottom:-100px;left:-100px"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">⚙️</div>
+      <div>
+        <div class="st">Types of Machine Learning</div>
+        <div class="sd">Four core learning paradigms — hover to explore</div>
+      </div>
+    </div>
+    <div class="sc">
+      <p style="text-align:center;color:#94a3b8;font-size:.8rem;margin-bottom:12px">👆 Hover a card to flip it and reveal details</p>
+      <div class="g g2">
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <div class="flip-emoji">🏷️</div>
+              <div class="flip-title" style="color:#60a5fa">01 · Supervised Learning</div>
+              <div class="flip-body">Learning with Labels — model trains on labeled input→output pairs.</div>
+            </div>
+            <div class="flip-back">
+              <div class="flip-title" style="color:#6ee7b7">Use Cases</div>
+              <div class="flip-body">📧 Spam Detection · 🏠 House Prices · 🩺 Diagnosis · 📊 Credit Scoring<br><br><b>Algos:</b> Linear Regression · SVM · Decision Trees · KNN</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <div class="flip-emoji">🔍</div>
+              <div class="flip-title" style="color:#a78bfa">02 · Unsupervised Learning</div>
+              <div class="flip-body">No labels — model finds hidden patterns from raw data.</div>
+            </div>
+            <div class="flip-back">
+              <div class="flip-title" style="color:#6ee7b7">Use Cases</div>
+              <div class="flip-body">👥 Customer Segments · 🔍 Anomaly Detection · 📦 Topic Modeling<br><br><b>Algos:</b> K-Means · DBSCAN · PCA · Autoencoders</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <div class="flip-emoji">⚡</div>
+              <div class="flip-title" style="color:#34d399">03 · Semi-Supervised</div>
+              <div class="flip-body">Best of both worlds — small labeled + large unlabeled data.</div>
+            </div>
+            <div class="flip-back">
+              <div class="flip-title" style="color:#6ee7b7">Use Cases</div>
+              <div class="flip-body">🖼️ Image Classification · 🗣️ Speech Recognition<br><br><b>Algos:</b> Label Propagation · Self-Training · Pseudo-Labeling</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <div class="flip-emoji">🎯</div>
+              <div class="flip-title" style="color:#fbbf24">04 · Reinforcement Learning</div>
+              <div class="flip-body">Learning by reward — agent takes actions, gets rewarded or penalized.</div>
+            </div>
+            <div class="flip-back">
+              <div class="flip-title" style="color:#6ee7b7">Use Cases</div>
+              <div class="flip-body">🎮 AlphaGo · 🚗 Self-Driving · 🤖 Robotics · 💬 RLHF for LLMs<br><br><b>Algos:</b> Q-Learning · PPO · DQN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S4 · NEURAL NETS ══════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="orb" style="width:280px;height:280px;background:#10b981;top:-60px;right:-60px"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(16,185,129,.2)">🔗</div>
+      <div>
+        <div class="st">Neural Networks & Deep Learning</div>
+        <div class="sd">Brain-inspired architectures powering modern AI</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:18px">
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">Feedforward Architecture</span>
+            <div class="dl"></div>
+          </div>
+          <div class="nn-wrap">
+            <div class="nn">
+              <div class="nc">
+                <div class="nlbl">Input Layer</div>
+                <div class="nd ni">x₁</div>
+                <div class="nd ni">x₂</div>
+                <div class="nd ni">x₃</div>
+              </div>
+              <div class="nconn">
+                <div class="nl"></div>
+                <div class="nl"></div>
+                <div class="nl"></div>
+              </div>
+              <div class="nc">
+                <div class="nlbl">Hidden 1</div>
+                <div class="nd nh">h₁</div>
+                <div class="nd nh">h₂</div>
+                <div class="nd nh">h₃</div>
+                <div class="nd nh">h₄</div>
+              </div>
+              <div class="nconn">
+                <div class="nl"></div>
+                <div class="nl"></div>
+                <div class="nl"></div>
+              </div>
+              <div class="nc">
+                <div class="nlbl">Hidden 2</div>
+                <div class="nd nh">h₁</div>
+                <div class="nd nh">h₂</div>
+                <div class="nd nh">h₃</div>
+              </div>
+              <div class="nconn">
+                <div class="nl"></div>
+                <div class="nl"></div>
+              </div>
+              <div class="nc">
+                <div class="nlbl">Output</div>
+                <div class="nd no">ŷ₁</div>
+                <div class="nd no">ŷ₂</div>
+              </div>
+            </div>
+            <div style="text-align:center;font-size:.65rem;color:#334155;margin-top:8px">Hover nodes to interact</div>
+          </div>
+          <div class="card">
+            <div class="ct">⚡ Core Concepts</div>
+            <div class="cb">
+              <b style="color:#93c5fd">Neuron</b> — receives inputs × weights + bias → activation function →
+              output.<br><br>
+              <b style="color:#93c5fd">Backpropagation</b> — error propagates backward; weights updated via gradient
+              descent.<br><br>
+              <b style="color:#93c5fd">Activation Fns</b> — ReLU, Sigmoid, Tanh, Softmax, GELU.<br><br>
+              <b style="color:#93c5fd">Dropout</b> — randomly disables neurons during training to prevent overfitting.
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">Major DL Architectures</span>
+            <div class="dl"></div>
+          </div>
+          <div class="g g2" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+            <div class="card">
+              <div class="ci">🖼️</div>
+              <div class="ct">CNN</div>
+              <div class="cb">Convolutional Neural Net. Filters detect edges, shapes, textures in images. Stack of
+                Conv→Pool→FC layers.</div><span class="badge bb">Computer Vision</span>
+            </div>
+            <div class="card">
+              <div class="ci">🔄</div>
+              <div class="ct">RNN / LSTM / GRU</div>
+              <div class="cb">Recurrent memory for sequential data. LSTM gates solve vanishing gradient. Good for
+                time-series and audio.</div><span class="badge bp">Sequences</span>
+            </div>
+            <div class="card">
+              <div class="ci">🎯</div>
+              <div class="ct">Transformer</div>
+              <div class="cb">Self-attention processes sequences in parallel. No recurrence. Foundation of GPT, BERT,
+                Claude, Gemini.</div><span class="badge bo">NLP / LLMs</span>
+            </div>
+            <div class="card">
+              <div class="ci">⚔️</div>
+              <div class="ct">GAN</div>
+              <div class="cb">Generator vs Discriminator adversarial game. Creates hyper-realistic images, deepfakes,
+                synthetic data.</div><span class="badge bpk">Generative</span>
+            </div>
+            <div class="card">
+              <div class="ci">🔮</div>
+              <div class="ct">Autoencoder / VAE</div>
+              <div class="cb">Compress to latent space → reconstruct. VAE adds probability for smooth generation.
+                Anomaly detection.</div><span class="badge bg">Representation</span>
+            </div>
+            <div class="card">
+              <div class="ci">🌊</div>
+              <div class="ct">Diffusion Model</div>
+              <div class="cb">Learns to reverse a noise-adding process. Powers Stable Diffusion, DALL·E 3, Midjourney,
+                Sora.</div><span class="badge bpk">Image Gen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S5 · ALGORITHMS ══════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="orb" style="width:320px;height:320px;background:#f59e0b;bottom:-100px;right:-80px;opacity:.12"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(245,158,11,.2)">📊</div>
+      <div>
+        <div class="st">Core ML Algorithms</div>
+        <div class="sd">The essential toolkit — what each does and when to use it</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="g" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+        <div class="ac">
+          <div class="ac-cat" style="color:#60a5fa">Regression</div>
+          <div class="ac-name">Linear Regression</div>
+          <div class="ac-use">Predicts continuous values. Fits best line minimizing MSE. Use: price prediction, sales
+            forecasting.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#60a5fa">Classification</div>
+          <div class="ac-name">Logistic Regression</div>
+          <div class="ac-use">Binary classification via sigmoid. Outputs probability 0–1. Use: spam, churn, medical
+            yes/no.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#a78bfa">Tree-Based</div>
+          <div class="ac-name">Decision Tree</div>
+          <div class="ac-use">Splits on feature thresholds. Highly interpretable. Prone to overfitting — use ensembles
+            instead.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#a78bfa">Ensemble</div>
+          <div class="ac-name">Random Forest</div>
+          <div class="ac-use">Bags many decorrelated trees, averages predictions. Robust, handles missing values well.
+          </div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#f472b6">Ensemble</div>
+          <div class="ac-name">XGBoost / LightGBM</div>
+          <div class="ac-use">Boosting: sequentially corrects errors. Dominates tabular ML competitions. Fast,
+            regularized.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#34d399">Instance-Based</div>
+          <div class="ac-name">K-Nearest Neighbors</div>
+          <div class="ac-use">Classifies by majority vote of k nearest neighbors. No training phase, lazy learner.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#fbbf24">Kernel</div>
+          <div class="ac-name">Support Vector Machine</div>
+          <div class="ac-use">Finds max-margin hyperplane. Kernel trick handles non-linear boundaries. Good for high
+            dimensions.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#34d399">Clustering</div>
+          <div class="ac-name">K-Means / DBSCAN</div>
+          <div class="ac-use">K-Means: assign to nearest centroid. DBSCAN: density-based, finds arbitrary shapes,
+            handles noise.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#60a5fa">Probabilistic</div>
+          <div class="ac-name">Naive Bayes</div>
+          <div class="ac-use">Bayes' theorem + feature independence assumption. Lightning-fast, great for text/NLP
+            classification.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#a78bfa">Dimensionality</div>
+          <div class="ac-name">PCA / t-SNE / UMAP</div>
+          <div class="ac-use">PCA: linear compression. t-SNE/UMAP: non-linear visualization. Reduce features, remove
+            noise.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#f472b6">Deep Learning</div>
+          <div class="ac-name">Transformer (Attention)</div>
+          <div class="ac-use">Self-attention on full sequences. Scales to billions of parameters. Foundation of all
+            modern LLMs.</div>
+        </div>
+        <div class="ac">
+          <div class="ac-cat" style="color:#fbbf24">Reinforcement</div>
+          <div class="ac-name">Q-Learning / PPO</div>
+          <div class="ac-use">Agent maximizes cumulative reward. PPO = stable policy gradient used in ChatGPT's RLHF
+            training.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S6 · LLMs & GenAI ══════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="orb" style="width:300px;height:300px;background:#ec4899;top:-80px;left:-80px;opacity:.15"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(236,72,153,.2)">✨</div>
+      <div>
+        <div class="st">Large Language Models & Generative AI</div>
+        <div class="sd">The revolution that changed everything</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">LLM Evolution Timeline</span>
+            <div class="dl"></div>
+          </div>
+          <div class="tl">
+            <div class="tli">
+              <div class="tl-dot" style="background:#3b82f6"></div>
+              <div class="tl-yr">2017</div>
+              <div class="tl-t">Transformer Architecture</div>
+              <div class="tl-b">"Attention Is All You Need" — Google Brain. Replaced RNNs entirely. Changed AI forever.
+              </div>
+            </div>
+            <div class="tli">
+              <div class="tl-dot" style="background:#6366f1"></div>
+              <div class="tl-yr">2018</div>
+              <div class="tl-t">BERT & GPT-1</div>
+              <div class="tl-b">Bidirectional pre-training (BERT) and autoregressive generation (GPT) — two paradigms
+                emerge.</div>
+            </div>
+            <div class="tli">
+              <div class="tl-dot" style="background:#8b5cf6"></div>
+              <div class="tl-yr">2020</div>
+              <div class="tl-t">GPT-3 (175B parameters)</div>
+              <div class="tl-b">First truly general-purpose LLM. Few-shot learning at scale. API-first AI.</div>
+            </div>
+            <div class="tli">
+              <div class="tl-dot" style="background:#a855f7"></div>
+              <div class="tl-yr">2022</div>
+              <div class="tl-t">ChatGPT + DALL·E 2 + Stable Diffusion</div>
+              <div class="tl-b">RLHF-aligned chat. 100M users in 60 days. GenAI goes mainstream.</div>
+            </div>
+            <div class="tli">
+              <div class="tl-dot" style="background:#ec4899"></div>
+              <div class="tl-yr">2023</div>
+              <div class="tl-t">GPT-4 · Claude · Gemini · Llama 2</div>
+              <div class="tl-b">Multimodal models. Open-source Llama democratizes LLMs.</div>
+            </div>
+            <div class="tli">
+              <div class="tl-dot" style="background:#f97316"></div>
+              <div class="tl-yr">2024–25</div>
+              <div class="tl-t">Agentic AI · o1/o3 · Claude 3.5/4 · Gemini 2</div>
+              <div class="tl-b">Reasoning models, long context (1M+ tokens), multimodal, agentic workflows.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="div">
+            <div class="dl"></div><span class="dl-txt">How LLMs Work</span>
+            <div class="dl"></div>
+          </div>
+          <div class="g g2" style="grid-template-columns:1fr">
+            <div class="card">
+              <div class="ci">📚</div>
+              <div class="ct">Pre-training</div>
+              <div class="cb">Train on trillions of tokens from the internet. Predict the next token. Model learns
+                language, facts, reasoning, code. Extremely expensive.</div><span class="badge bb">Foundation</span>
+            </div>
+            <div class="card">
+              <div class="ci">🎓</div>
+              <div class="ct">Fine-tuning & RLHF</div>
+              <div class="cb">SFT on curated examples, then RLHF (human preference feedback) aligns the model to be
+                helpful, harmless, and honest.</div><span class="badge bp">Alignment</span>
+            </div>
+            <div class="card">
+              <div class="ci">🔍</div>
+              <div class="ct">RAG — Retrieval-Augmented Generation</div>
+              <div class="cb">Combines vector DB search with LLM generation. Reduces hallucinations, adds real-time
+                knowledge without retraining.</div><span class="badge bg">Grounding</span>
+            </div>
+            <div class="card">
+              <div class="ci">🤖</div>
+              <div class="ct">AI Agents</div>
+              <div class="cb">LLMs with tools — can browse web, write/run code, call APIs, remember state across steps.
+                ReAct, AutoGPT, Claude Computer Use.</div><span class="badge bo">Autonomous</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S7 · LLM TERMINOLOGY ══════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="orb" style="width:350px;height:350px;background:#06b6d4;bottom:-100px;right:-100px;opacity:.13"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(6,182,212,.2)">🧩</div>
+      <div>
+        <div class="st">LLM & AI Terminology You Must Know</div>
+        <div class="sd">Hover any underlined term in other slides for quick definitions · Master this vocabulary</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="div">
+        <div class="dl"></div><span class="dl-txt">Core LLM Concepts</span>
+        <div class="dl"></div>
+      </div>
+      <div class="g" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:14px">
+        <div class="lt">
+          <div class="lt-term" style="color:#67e8f9">🪙 Token</div>
+          <div class="lt-def">The unit of text LLMs process — roughly a word or subword (~4 chars). "ChatGPT" = 1 token.
+            "tokenization" = 3 tokens. Models have a max token limit (context window).</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#67e8f9">📐 Context Window</div>
+          <div class="lt-def">Maximum tokens the model can "see" at once — its working memory. GPT-4: 128K. Claude 3.5:
+            200K. Longer = more expensive but handles long docs, code, conversations.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#c4b5fd">🌡️ Temperature</div>
+          <div class="lt-def">Controls randomness. 0 = deterministic (always picks most likely token). 1+ = more
+            creative/random. Use 0 for factual tasks, 0.7–1 for creative writing.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#c4b5fd">🔢 Embedding</div>
+          <div class="lt-def">A dense vector (list of numbers) representing text, images, or any data in a
+            high-dimensional space. Similar meanings → nearby vectors. Powers semantic search and RAG.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#fcd34d">🔝 Top-P / Top-K</div>
+          <div class="lt-def">Sampling strategies. Top-K: consider only k most likely tokens. Top-P (nucleus): consider
+            tokens whose cumulative probability ≥ P. Controls diversity of outputs.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#fcd34d">🎯 Prompt Engineering</div>
+          <div class="lt-def">Crafting inputs to steer model behavior. Includes zero-shot (no examples), few-shot (give
+            examples), chain-of-thought (ask to reason step-by-step), system prompts.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#f9a8d4">👻 Hallucination</div>
+          <div class="lt-def">When an LLM confidently generates false or fabricated information. A fundamental
+            limitation. Mitigated by RAG, grounding, and verification pipelines.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#f9a8d4">🧩 System Prompt</div>
+          <div class="lt-def">A hidden instruction given to the LLM before the user message. Sets persona, tone, rules,
+            and context. Powers products like Claude, ChatGPT, Copilot.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#6ee7b7">⚡ Inference</div>
+          <div class="lt-def">Using a trained model to generate outputs on new inputs. As opposed to training. Inference
+            is what happens every time you chat with an AI — much cheaper than training.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#6ee7b7">🔧 Fine-tuning</div>
+          <div class="lt-def">Further training a pre-trained model on a smaller, task-specific dataset. Cheaper than
+            training from scratch. LoRA and QLoRA are popular efficient fine-tuning methods.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#93c5fd">🗄️ Vector Database</div>
+          <div class="lt-def">Stores embeddings for fast similarity search. Core component of RAG. Examples: Pinecone,
+            Weaviate, Chroma, pgvector. Enables semantic search at scale.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#93c5fd">🤖 AI Agent</div>
+          <div class="lt-def">An LLM with tools and memory that autonomously plans and executes multi-step tasks. Can
+            call APIs, run code, browse web. Foundation of Agentic AI workflows.</div>
+        </div>
+      </div>
+      
+        <div class="lt">
+          <div class="lt-term" style="color:#6ee7b7">🚀 GenAI (Generative AI)</div>
+          <div class="lt-def">AI systems capable of generating novel text, images, or other media in response to prompts, driving the latest wave of business transformation.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#fcd34d">📚 RAG (Retrieval-Augmented Generation)</div>
+          <div class="lt-def">A technique where an AI model retrieves facts from an external database (like your company documents) before answering, ensuring high accuracy.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#67e8f9">🤖 Copilot</div>
+          <div class="lt-def">An AI assistant integrated directly into applications (like Word, coding software, or internal tools) to augment human productivity.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#f9a8d4">🛡️ Guardrails</div>
+          <div class="lt-def">Safety mechanisms and policies applied to AI outputs to prevent brand damage, bias, or data leakage in enterprise environments.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#c4b5fd">🏗️ Foundation Model</div>
+          <div class="lt-def">Massive, generalized AI models (like GPT-4 or Claude) trained on vast data, which can be adapted or fine-tuned for specific business tasks.</div>
+        </div>
+
+      <div class="div">
+        <div class="dl"></div><span class="dl-txt">Model Evaluation Terms</span>
+        <div class="dl"></div>
+      </div>
+      <div class="g" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+        <div class="lt">
+          <div class="lt-term" style="color:#c4b5fd">📉 Perplexity</div>
+          <div class="lt-def">Measures how well an LLM predicts a text sample. Lower = better. Key metric for language
+            model evaluation.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#c4b5fd">📊 BLEU / ROUGE</div>
+          <div class="lt-def">BLEU: measures generated text vs reference (used in translation). ROUGE: measures recall,
+            used in summarization evaluation.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#fcd34d">🔄 RLHF</div>
+          <div class="lt-def">Reinforcement Learning from Human Feedback. Humans rank outputs; reward model trains on
+            that; PPO fine-tunes LLM. How ChatGPT/Claude became helpful.</div>
+        </div>
+        <div class="lt">
+          <div class="lt-term" style="color:#fcd34d">⚖️ Constitutional AI</div>
+          <div class="lt-def">Anthropic's technique (used in Claude): model critiques and revises its own outputs
+            against a set of principles. Reduces need for human labeling.</div>
+        </div>
+      </div>
+      <div class="div"><div class="dl"></div><span class="dl-txt">🎮 Quick Match Game — Connect Term to Definition</span><div class="dl"></div></div>
+      <p style="text-align:center;color:#94a3b8;font-size:.75rem;margin-bottom:10px">Click a term from the left, then its matching definition on the right</p>
+      <div class="match-game" id="matchGame" style="max-width:680px;margin:0 auto 8px">
+        <div class="mg-col" id="mgLeft">
+          <div class="mg-item" data-mg-group="left" data-mg-id="rag" onclick="mgSelect(this,'left','rag')">🔍 RAG</div>
+          <div class="mg-item" data-mg-group="left" data-mg-id="token" onclick="mgSelect(this,'left','token')">🪙 Token</div>
+          <div class="mg-item" data-mg-group="left" data-mg-id="hallucination" onclick="mgSelect(this,'left','hallucination')">👻 Hallucination</div>
+          <div class="mg-item" data-mg-group="left" data-mg-id="embedding" onclick="mgSelect(this,'left','embedding')">🔢 Embedding</div>
+          <div class="mg-item" data-mg-group="left" data-mg-id="rlhf" onclick="mgSelect(this,'left','rlhf')">🔄 RLHF</div>
+        </div>
+        <div class="mg-col" id="mgRight">
+          <div class="mg-item" data-mg-group="right" data-mg-id="embedding" onclick="mgSelect(this,'right','embedding')">A dense numeric vector representing meaning in high-dimensional space</div>
+          <div class="mg-item" data-mg-group="right" data-mg-id="rlhf" onclick="mgSelect(this,'right','rlhf')">Aligning LLMs using human preference rankings + reward model</div>
+          <div class="mg-item" data-mg-group="right" data-mg-id="rag" onclick="mgSelect(this,'right','rag')">Fetch real docs before generating an answer — reduces hallucination</div>
+          <div class="mg-item" data-mg-group="right" data-mg-id="token" onclick="mgSelect(this,'right','token')">The smallest unit of text an LLM processes (~word piece)</div>
+          <div class="mg-item" data-mg-group="right" data-mg-id="hallucination" onclick="mgSelect(this,'right','hallucination')">When an LLM confidently generates false/fabricated information</div>
+        </div>
+      </div>
+      <div class="mg-score">Click a term to start matching!</div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S8 · USE CASES ══════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="orb" style="width:300px;height:300px;background:#10b981;top:-80px;left:-80px;opacity:.13"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(16,185,129,.2)">🚀</div>
+      <div>
+        <div class="st">AI Use Cases Across Industries</div>
+        <div class="sd">Where AI creates real impact today — hover each card</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="g g4" style="grid-template-columns:repeat(auto-fit,minmax(155px,1fr))">
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(37,99,235,.14),rgba(37,99,235,.04));border-color:rgba(37,99,235,.22)">
+          <span class="uci">🏥</span>
+          <div class="uct">Healthcare</div>
+          <div class="ucb">Disease diagnosis · Drug discovery · Medical imaging · Clinical NLP · Protein folding
+            (AlphaFold)</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(124,58,237,.04));border-color:rgba(124,58,237,.22)">
+          <span class="uci">💰</span>
+          <div class="uct">Finance</div>
+          <div class="ucb">Fraud detection · Algo trading · Credit scoring · AML compliance · Robo-advisors</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(16,185,129,.14),rgba(16,185,129,.04));border-color:rgba(16,185,129,.22)">
+          <span class="uci">🛒</span>
+          <div class="uct">Retail & E-Commerce</div>
+          <div class="ucb">Recommendations · Demand forecasting · Dynamic pricing · Visual search · Inventory AI</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.04));border-color:rgba(245,158,11,.22)">
+          <span class="uci">🚗</span>
+          <div class="uct">Autonomous Vehicles</div>
+          <div class="ucb">Object detection · Path planning · LIDAR fusion · Semantic segmentation · Decision making
+          </div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(236,72,153,.14),rgba(236,72,153,.04));border-color:rgba(236,72,153,.22)">
+          <span class="uci">💬</span>
+          <div class="uct">NLP & Chatbots</div>
+          <div class="ucb">Customer support · Sentiment analysis · Translation · Code generation · Document Q&A</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(6,182,212,.14),rgba(6,182,212,.04));border-color:rgba(6,182,212,.22)">
+          <span class="uci">🏭</span>
+          <div class="uct">Manufacturing</div>
+          <div class="ucb">Predictive maintenance · Quality CV inspection · Supply chain · Robot automation</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(99,102,241,.04));border-color:rgba(99,102,241,.22)">
+          <span class="uci">🎨</span>
+          <div class="uct">Creative AI</div>
+          <div class="ucb">Image gen (DALL·E, MJ) · Music AI · Video synthesis (Sora) · Writing assistants</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(5,150,105,.14),rgba(5,150,105,.04));border-color:rgba(5,150,105,.22)">
+          <span class="uci">🌿</span>
+          <div class="uct">Climate & Science</div>
+          <div class="ucb">Weather forecasting · Climate modelling · Precision agriculture · Materials discovery</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(217,70,239,.14),rgba(217,70,239,.04));border-color:rgba(217,70,239,.22)">
+          <span class="uci">🎓</span>
+          <div class="uct">Education</div>
+          <div class="ucb">Adaptive learning · AI tutors · Auto-grading · Personalized curriculum · EdTech copilots
+          </div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(239,68,68,.14),rgba(239,68,68,.04));border-color:rgba(239,68,68,.22)">
+          <span class="uci">🔐</span>
+          <div class="uct">Cybersecurity</div>
+          <div class="ucb">Intrusion detection · Malware classification · Threat intel · Phishing AI · SIEM automation
+          </div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(234,179,8,.14),rgba(234,179,8,.04));border-color:rgba(234,179,8,.22)">
+          <span class="uci">⚖️</span>
+          <div class="uct">Legal & Compliance</div>
+          <div class="ucb">Contract analysis · Legal research · e-Discovery · Regulatory summarization</div>
+        </div>
+        <div class="ucc"
+          style="background:linear-gradient(135deg,rgba(20,184,166,.14),rgba(20,184,166,.04));border-color:rgba(20,184,166,.22)">
+          <span class="uci">💊</span>
+          <div class="uct">Drug Discovery</div>
+          <div class="ucb">Molecule generation · Target identification · Clinical trial design · Side-effect prediction
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S9 · QUIZ ══════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="orb" style="width:400px;height:400px;background:#8b5cf6;top:-150px;right:-150px;opacity:.15"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">🧠</div>
+      <div>
+        <div class="st">Knowledge Check</div>
+        <div class="sd">Test what you've learned — 10 questions</div>
+      </div>
+    </div>
+    <div class="sc" id="quizArea" style="display:flex;align-items:center;justify-content:center">
+      <div id="quizInner" style="width:100%;max-width:620px"></div>
+    </div>
+  </div>
+
+  
+  <!-- ══════════════════════ S10 ══════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🚀</div>
+      <div>
+        <div class="st">AI Transformation in Business</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:1.1rem;color:#cbd5e1;line-height:1.6;margin-bottom:24px;text-align:center;">
+        The Next Evolution of Business Services<br><br><br><span style='font-size:1.2rem;color:#fcd34d'><b>FBSPL</b></span><br><br><span style='color:#94a3b8;font-size:0.9rem'>Positioning: “Preparing FBSPL for the AI-Driven Business Era.”</span>
+      </div>
+      
+      
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S11 ══════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">❓</div>
+      <div>
+        <div class="st">Will AI Replace Jobs or Transform Them?</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:2.8rem;font-weight:900;background:linear-gradient(135deg,#f59e0b,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px">Will AI Replace Jobs?</div>
+        <div style="color:#94a3b8;font-size:1rem">Or will it transform them? Let's find out together.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:0 auto">
+        <div class="card" style="text-align:center;padding:24px;border-color:rgba(59,130,246,.3);cursor:pointer;transition:.25s" onclick="this.style.background='rgba(59,130,246,.25)';this.querySelector('.vote-num').textContent=String(parseInt(this.querySelector('.vote-num').textContent||0)+1)+' ✋'">
+          <div style="font-size:2.8rem;margin-bottom:10px">✋</div>
+          <div style="font-weight:700;color:#93c5fd;margin-bottom:6px">Already use AI</div>
+          <div style="font-size:.75rem;color:#64748b">Click to vote</div>
+          <div class="vote-num" style="font-size:1.4rem;font-weight:900;color:#60a5fa;margin-top:8px">0 ✋</div>
+        </div>
+        <div class="card" style="text-align:center;padding:24px;border-color:rgba(239,68,68,.3);cursor:pointer;transition:.25s" onclick="this.style.background='rgba(239,68,68,.2)';this.querySelector('.vote-num').textContent=String(parseInt(this.querySelector('.vote-num').textContent||0)+1)+' 😨'">
+          <div style="font-size:2.8rem;margin-bottom:10px">😨</div>
+          <div style="font-weight:700;color:#fca5a5;margin-bottom:6px">AI will replace jobs</div>
+          <div style="font-size:.75rem;color:#64748b">Click to vote</div>
+          <div class="vote-num" style="font-size:1.4rem;font-weight:900;color:#ef4444;margin-top:8px">0 😨</div>
+        </div>
+        <div class="card" style="text-align:center;padding:24px;border-color:rgba(16,185,129,.3);cursor:pointer;transition:.25s" onclick="this.style.background='rgba(16,185,129,.2)';this.querySelector('.vote-num').textContent=String(parseInt(this.querySelector('.vote-num').textContent||0)+1)+' 🚀'">
+          <div style="font-size:2.8rem;margin-bottom:10px">🚀</div>
+          <div style="font-weight:700;color:#6ee7b7;margin-bottom:6px">AI will create jobs</div>
+          <div style="font-size:.75rem;color:#64748b">Click to vote</div>
+          <div class="vote-num" style="font-size:1.4rem;font-weight:900;color:#10b981;margin-top:8px">0 🚀</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px;color:#64748b;font-size:.8rem">👆 Each participant click your answer — watch the votes live!</div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S12 ══════════════════════ -->
+  <div class="slide" id="s12">
+    <div class="orb" style="width:350px;height:350px;background:#8b5cf6;bottom:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">🌍</div>
+      <div>
+        <div class="st">The Fourth Industrial Revolution</div>
+        <div class="sd">Four waves of transformation — we are living in the fourth right now</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="max-width:640px;margin:0 auto">
+        <div style="display:flex;flex-direction:column;gap:10px">
+
+          <div style="display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 18px rgba(124,58,237,.4);flex-shrink:0">1️⃣</div>
+            <div style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(124,58,237,.03));border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:12px 16px">
+              <div style="font-weight:800;color:#c4b5fd;font-size:.92rem">Industrial Revolution — <span style="color:#a78bfa">Machines</span></div>
+              <div style="font-size:.73rem;color:#64748b;margin-top:3px">Steam power replaced manual labour. Companies that adopted machines dominated trade.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-start;padding-left:26px;color:#334155;font-size:.8rem">▼</div>
+
+          <div style="display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#1d4ed8,#0284c7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 18px rgba(29,78,216,.4);flex-shrink:0">2️⃣</div>
+            <div style="background:linear-gradient(135deg,rgba(29,78,216,.1),rgba(29,78,216,.03));border:1px solid rgba(29,78,216,.25);border-radius:12px;padding:12px 16px">
+              <div style="font-weight:800;color:#93c5fd;font-size:.92rem">Digital Revolution — <span style="color:#60a5fa">Computers</span></div>
+              <div style="font-size:.73rem;color:#64748b;margin-top:3px">Digital systems became the new backbone of business. Early adopters outpaced competitors.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-start;padding-left:26px;color:#334155;font-size:.8rem">▼</div>
+
+          <div style="display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#0e7490,#0891b2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 18px rgba(8,145,178,.4);flex-shrink:0">3️⃣</div>
+            <div style="background:linear-gradient(135deg,rgba(8,145,178,.1),rgba(8,145,178,.03));border:1px solid rgba(8,145,178,.25);border-radius:12px;padding:12px 16px">
+              <div style="font-weight:800;color:#67e8f9;font-size:.92rem">Internet Revolution — <span style="color:#22d3ee">Global Connectivity</span></div>
+              <div style="font-size:.73rem;color:#64748b;margin-top:3px">The web connected the world. Companies without digital presence became invisible.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-start;padding-left:26px;color:#334155;font-size:.8rem">▼</div>
+
+          <div style="display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#b45309,#f59e0b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 28px rgba(245,158,11,.5);flex-shrink:0">4️⃣</div>
+            <div style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.4);border-radius:12px;padding:12px 16px;box-shadow:0 0 20px rgba(245,158,11,.12)">
+              <div style="font-weight:800;color:#fcd34d;font-size:.92rem">🤖 AI Revolution — <span style="color:#fb923c">Intelligent Systems</span></div>
+              <div style="font-size:.73rem;color:#94a3b8;margin-top:3px">AI reasons, predicts, and acts. <b style="color:#fcd34d">This is happening right now.</b> Companies adopting AI today will lead tomorrow.</div>
+            </div>
+          </div>
+
+        </div>
+        <div style="margin-top:16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:11px 14px;font-size:.78rem;color:#fca5a5;text-align:center">
+          ⚠️ <b>Business Insight:</b> Organizations ignoring technological waves typically lose competitive advantage within 5–10 years.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" id="s13">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">📈</div>
+      <div>
+        <div class="st">The AI Explosion</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:720px;margin:0 auto">
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:12px">📈 Market Growth</div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Enterprise AI Adoption</span><span style="color:#6ee7b7">72%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="72%" style="background:linear-gradient(90deg,#10b981,#06b6d4)"></div></div>
+          </div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Cost Reduction via AI</span><span style="color:#fcd34d">60%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="60%" style="background:linear-gradient(90deg,#f59e0b,#f97316)"></div></div>
+          </div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Productivity Gains</span><span style="color:#c4b5fd">85%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="85%" style="background:linear-gradient(90deg,#8b5cf6,#ec4899)"></div></div>
+          </div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Companies Planning AI</span><span style="color:#93c5fd">92%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="92%" style="background:linear-gradient(90deg,#3b82f6,#0ea5e9)"></div></div>
+          </div>
+          <div style="margin-top:6px;font-size:.68rem;color:#475569;font-style:italic">Source: McKinsey Global AI Report 2024</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:18px;text-align:center">
+            <div class="count-num" data-target="4" data-float="1">0</div>
+            <div style="font-size:.85rem;color:#6ee7b7;font-weight:700">Trillion USD</div>
+            <div style="font-size:.7rem;color:#64748b;margin-top:4px">Global AI market by 2030</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:18px;text-align:center">
+            <div class="count-num" data-target="97" style="font-size:2.5rem">0</div>
+            <div style="font-size:.85rem;color:#fcd34d;font-weight:700">Million Jobs</div>
+            <div style="font-size:.7rem;color:#64748b;margin-top:4px">Created by AI by 2025 (WEF)</div>
+          </div>
+          <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px;font-size:.78rem;color:#fca5a5;text-align:center">
+            🔑 AI is not experimental — it is becoming <b>operational infrastructure</b>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S14 ══════════════════════ -->
+  <div class="slide" id="s14">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">💼</div>
+      <div>
+        <div class="st">Why AI Matters for Business Services</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:.9rem;color:#94a3b8;margin-bottom:16px;text-align:center">The core workflow of an outsourcing firm — <span style="color:#a78bfa">each step can be enhanced by AI</span></div>
+      <div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        <div style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:14px;text-align:center;min-width:110px">
+          <div style="font-size:1.6rem">📄</div>
+          <div style="font-size:.75rem;font-weight:700;color:#93c5fd;margin-top:6px">Document<br>Processing</div>
+          <div style="font-size:.62rem;color:#3b82f6;margin-top:4px">Contracts, Claims, Invoices</div>
+        </div>
+        <div style="color:#64748b;font-size:1.4rem">→</div>
+        <div style="background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);border-radius:10px;padding:14px;text-align:center;min-width:110px">
+          <div style="font-size:1.6rem">🎧</div>
+          <div style="font-size:.75rem;font-weight:700;color:#c4b5fd;margin-top:6px">Customer<br>Support</div>
+          <div style="font-size:.62rem;color:#8b5cf6;margin-top:4px">AI chatbots, auto-routing</div>
+        </div>
+        <div style="color:#64748b;font-size:1.4rem">→</div>
+        <div style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:14px;text-align:center;min-width:110px">
+          <div style="font-size:1.6rem">⚡</div>
+          <div style="font-size:.75rem;font-weight:700;color:#6ee7b7;margin-top:6px">Workflow<br>Automation</div>
+          <div style="font-size:.62rem;color:#10b981;margin-top:4px">Approvals, escalations</div>
+        </div>
+        <div style="color:#64748b;font-size:1.4rem">→</div>
+        <div style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:14px;text-align:center;min-width:110px">
+          <div style="font-size:1.6rem">🧠</div>
+          <div style="font-size:.75rem;font-weight:700;color:#fcd34d;margin-top:6px">Knowledge<br>Management</div>
+          <div style="font-size:.62rem;color:#f59e0b;margin-top:4px">RAG-powered search</div>
+        </div>
+        <div style="color:#64748b;font-size:1.4rem">→</div>
+        <div style="background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);border-radius:10px;padding:14px;text-align:center;min-width:110px">
+          <div style="font-size:1.6rem">📊</div>
+          <div style="font-size:.75rem;font-weight:700;color:#67e8f9;margin-top:6px">Data<br>Insights</div>
+          <div style="font-size:.62rem;color:#06b6d4;margin-top:4px">Dashboards, predictions</div>
+        </div>
+      </div>
+      <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:14px;text-align:center;font-size:.85rem;color:#c4b5fd">
+        💡 These are the <b>exact core operations of BPO</b> — every single one can be accelerated with AI
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S15 ══════════════════════ -->
+  <div class="slide" id="s15">
+    <div class="orb" style="width:300px;height:300px;background:#8b5cf6;bottom:-80px;left:-80px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">⚖️</div>
+      <div><div class="st">AI vs Automation vs Analytics</div><div class="sd">Three related but very different concepts — know the difference</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:720px;margin:0 auto 16px">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(59,130,246,.04));border:1.5px solid rgba(59,130,246,.35);border-radius:16px;padding:20px;text-align:center">
+          <div style="font-size:2.2rem;margin-bottom:10px">⚙️</div>
+          <div style="font-weight:800;color:#93c5fd;font-size:1rem;margin-bottom:8px">Automation</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6;margin-bottom:12px">Follows fixed rules to complete repetitive tasks without thinking.</div>
+          <div style="background:rgba(59,130,246,.15);border-radius:8px;padding:8px;font-size:.7rem;color:#60a5fa">📋 Example:<br>Auto-sending an invoice email</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.35);border-radius:16px;padding:20px;text-align:center">
+          <div style="font-size:2.2rem;margin-bottom:10px">📊</div>
+          <div style="font-weight:800;color:#fcd34d;font-size:1rem;margin-bottom:8px">Analytics</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6;margin-bottom:12px">Examines past data to find patterns and generate insights for decisions.</div>
+          <div style="background:rgba(245,158,11,.15);border-radius:8px;padding:8px;font-size:.7rem;color:#f59e0b">📈 Example:<br>Monthly performance report</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(139,92,246,.04));border:1.5px solid rgba(139,92,246,.4);border-radius:16px;padding:20px;text-align:center;box-shadow:0 0 20px rgba(139,92,246,.15)">
+          <div style="font-size:2.2rem;margin-bottom:10px">🧠</div>
+          <div style="font-weight:800;color:#c4b5fd;font-size:1rem;margin-bottom:8px">AI</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6;margin-bottom:12px">Understands language, context, images — reasons and generates new outputs.</div>
+          <div style="background:rgba(139,92,246,.15);border-radius:8px;padding:8px;font-size:.7rem;color:#a78bfa">📄 Example:<br>AI summarising a claim document</div>
+        </div>
+      </div>
+      <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:12px;text-align:center;color:#6ee7b7;font-size:.85rem;max-width:500px;margin:0 auto">
+        ✅ <i>AI = Automation + Intelligence combined</i>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s16">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🔺</div>
+      <div>
+        <div class="st">Simple Visual Framework</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:1rem;color:#cbd5e1;margin-bottom:14px;text-align:center;">The Cognitive Pyramid — <span style="color:#a78bfa">Hover each tier</span></div>
+      <div style="max-width:520px;margin:0 auto 18px">
+        <div class="pyramid-row">
+          <div class="pyramid-block" style="width:30%;background:linear-gradient(135deg,#9d174d,#ec4899);color:#fce7f3">🧠 AI<br><span style="font-size:.65rem;opacity:.8">Decision Support</span></div>
+        </div>
+        <div class="pyramid-row">
+          <div class="pyramid-block" style="width:55%;background:linear-gradient(135deg,#4c1d95,#8b5cf6);color:#ddd6fe">📊 Analytics<br><span style="font-size:.65rem;opacity:.8">Insights from data</span></div>
+        </div>
+        <div class="pyramid-row">
+          <div class="pyramid-block" style="width:80%;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#bfdbfe">⚙️ Automation<br><span style="font-size:.65rem;opacity:.8">Execution of defined rules</span></div>
+        </div>
+      </div>
+      <div style="max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+        <div style="background:rgba(59,130,246,.1);border-radius:10px;padding:10px;font-size:.73rem;color:#93c5fd">Most orgs <b>already have</b> automation</div>
+        <div style="background:rgba(139,92,246,.1);border-radius:10px;padding:10px;font-size:.73rem;color:#c4b5fd">Many orgs <b>also have</b> analytics</div>
+        <div style="background:rgba(236,72,153,.15);border-radius:10px;padding:10px;font-size:.73rem;color:#f9a8d4">AI adds <b>cognitive power</b> on top</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S17 ══════════════════════ -->
+  <div class="slide" id="s17">
+    <div class="orb" style="width:280px;height:280px;background:#10b981;top:-60px;right:-60px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(16,185,129,.2)">⚡</div>
+      <div><div class="st">The AI Productivity Multiplier</div><div class="sd">Same task, dramatically less time — every time</div></div>
+    </div>
+    <div class="sc">
+      <div style="max-width:620px;margin:0 auto">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+          <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:center">
+            <div style="background:rgba(100,116,139,.12);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#94a3b8;margin-bottom:4px">📄 Document Review</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#fca5a5">30 min</div>
+            </div>
+            <div style="font-size:1.5rem;color:#64748b">→</div>
+            <div style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#6ee7b7;margin-bottom:4px">With AI</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#6ee7b7">5 min</div>
+            </div>
+            <div style="background:rgba(16,185,129,.2);border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;color:#10b981">6× faster</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:center">
+            <div style="background:rgba(100,116,139,.12);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#94a3b8;margin-bottom:4px">✉️ Email Drafting</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#fca5a5">10 min</div>
+            </div>
+            <div style="font-size:1.5rem;color:#64748b">→</div>
+            <div style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#6ee7b7;margin-bottom:4px">With AI</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#6ee7b7">1 min</div>
+            </div>
+            <div style="background:rgba(16,185,129,.2);border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;color:#10b981">10× faster</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:center">
+            <div style="background:rgba(100,116,139,.12);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#94a3b8;margin-bottom:4px">📝 Report Writing</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#fca5a5">2 hours</div>
+            </div>
+            <div style="font-size:1.5rem;color:#64748b">→</div>
+            <div style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:.72rem;color:#6ee7b7;margin-bottom:4px">With AI</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#6ee7b7">20 min</div>
+            </div>
+            <div style="background:rgba(16,185,129,.2);border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;color:#10b981">6× faster</div>
+          </div>
+        </div>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:12px;text-align:center;color:#fcd34d;font-size:.85rem">
+          ⚡ AI acts like a <b>productivity multiplier</b> — same person, dramatically more output
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s18">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🏢</div>
+      <div>
+        <div class="st">AI in Real Companies</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:.9rem;color:#94a3b8;margin-bottom:14px;text-align:center">Real-world AI deployments — <span style="color:#a78bfa">hover each card</span></div>
+      <div class="g g2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="rw-card" style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04))">
+          <div class="rw-badge" style="background:rgba(59,130,246,.25);color:#93c5fd">Accenture</div>
+          <div class="rw-company">AI Contract Review</div>
+          <div class="rw-result">Automated legal contract analysis, reducing review time from days to minutes</div>
+          <div class="rw-stat">70%</div>
+          <div style="font-size:.68rem;color:#64748b">faster contract processing</div>
+        </div>
+        <div class="rw-card" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04))">
+          <div class="rw-badge" style="background:rgba(16,185,129,.25);color:#6ee7b7">Genpact</div>
+          <div class="rw-company">Document Intelligence</div>
+          <div class="rw-result">AI extracts data from invoices, claims, and financial documents automatically</div>
+          <div class="rw-stat">3×</div>
+          <div style="font-size:.68rem;color:#64748b">throughput improvement</div>
+        </div>
+        <div class="rw-card" style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04))">
+          <div class="rw-badge" style="background:rgba(139,92,246,.25);color:#c4b5fd">IBM Watson</div>
+          <div class="rw-company">AI Customer Support</div>
+          <div class="rw-result">Conversational AI handles tier-1 queries, escalating complex issues to humans</div>
+          <div class="rw-stat">40%</div>
+          <div style="font-size:.68rem;color:#64748b">ticket deflection rate</div>
+        </div>
+        <div class="rw-card" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04))">
+          <div class="rw-badge" style="background:rgba(245,158,11,.25);color:#fcd34d">JPMorgan</div>
+          <div class="rw-company">COiN — Fraud Detection</div>
+          <div class="rw-result">ML models analyze 12k+ commercial credit agreements, catching anomalies instantly</div>
+          <div class="rw-stat">360K</div>
+          <div style="font-size:.68rem;color:#64748b">hours of labour saved/year</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S19 ══════════════════════ -->
+  <div class="slide" id="s19">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🔄</div>
+      <div>
+        <div class="st">The Transformation of Outsourcing</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;max-width:680px;margin:0 auto">
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:12px;text-align:center">😐 Traditional BPO</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.3rem">🏢</span><span style="font-size:.8rem;color:#94a3b8">Client sends work</span>
+            </div>
+            <div style="text-align:center;color:#475569;font-size:.7rem">▼</div>
+            <div style="background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.3rem">👤</span><span style="font-size:.8rem;color:#94a3b8">Humans process every task</span>
+            </div>
+            <div style="text-align:center;color:#475569;font-size:.7rem">▼</div>
+            <div style="background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.3rem">📤</span><span style="font-size:.8rem;color:#94a3b8">Deliver results</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:2.5rem;color:#a78bfa">→</div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#a78bfa;margin-bottom:12px;text-align:center">🚀 AI-Powered BPO</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.3rem">🏢</span><span style="font-size:.8rem;color:#93c5fd">Client sends work</span>
+            </div>
+            <div style="text-align:center;color:#475569;font-size:.7rem">▼</div>
+            <div style="background:rgba(139,92,246,.15);border:1.5px solid rgba(139,92,246,.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 0 16px rgba(139,92,246,.2)">
+              <span style="font-size:1.3rem">🤖</span><span style="font-size:.8rem;color:#c4b5fd"><b>AI processes at scale</b></span>
+            </div>
+            <div style="text-align:center;color:#475569;font-size:.7rem">▼</div>
+            <div style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.3rem">👤</span><span style="font-size:.8rem;color:#6ee7b7">Humans supervise &amp; validate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:18px;font-size:.9rem;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:12px;color:#fcd34d;max-width:500px;margin:18px auto 0">
+        ⚡ <b>Key shift:</b> From <span style="text-decoration:line-through;color:#64748b">labor arbitrage</span> → <b style="color:#f59e0b">intelligence arbitrage</b>
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S20 ══════════════════════ -->
+  <div class="slide" id="s20">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🎯</div>
+      <div>
+        <div class="st">Impact on Companies Like FBSPL</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:.9rem;color:#94a3b8;margin-bottom:14px;text-align:center">How AI transforms each FBSPL business function</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px">
+        <div class="card" style="text-align:center;padding:16px 12px;border-color:rgba(59,130,246,.3)">
+          <div style="font-size:1.8rem;margin-bottom:8px">🛡️</div>
+          <div style="font-size:.82rem;font-weight:700;color:#93c5fd;margin-bottom:4px">Insurance Docs</div>
+          <div style="font-size:.68rem;color:#64748b">AI reads &amp; classifies policy documents in seconds</div>
+          <div style="margin-top:8px;font-size:.65rem;background:rgba(59,130,246,.15);color:#60a5fa;padding:3px 8px;border-radius:8px;display:inline-block">Was: 20 min → Now: 30 sec</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px 12px;border-color:rgba(16,185,129,.3)">
+          <div style="font-size:1.8rem;margin-bottom:8px">📑</div>
+          <div style="font-size:.82rem;font-weight:700;color:#6ee7b7;margin-bottom:4px">Claim Processing</div>
+          <div style="font-size:.68rem;color:#64748b">Auto-extracts fields, flags anomalies, routes approvals</div>
+          <div style="margin-top:8px;font-size:.65rem;background:rgba(16,185,129,.15);color:#10b981;padding:3px 8px;border-radius:8px;display:inline-block">Error rate ↓ 50%</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px 12px;border-color:rgba(139,92,246,.3)">
+          <div style="font-size:1.8rem;margin-bottom:8px">🔎</div>
+          <div style="font-size:.82rem;font-weight:700;color:#c4b5fd;margin-bottom:4px">Knowledge Search</div>
+          <div style="font-size:.68rem;color:#64748b">RAG-powered search across all internal documents</div>
+          <div style="margin-top:8px;font-size:.65rem;background:rgba(139,92,246,.15);color:#a78bfa;padding:3px 8px;border-radius:8px;display:inline-block">Instant answers</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px 12px;border-color:rgba(245,158,11,.3)">
+          <div style="font-size:1.8rem;margin-bottom:8px">📝</div>
+          <div style="font-size:.82rem;font-weight:700;color:#fcd34d;margin-bottom:4px">Report Generation</div>
+          <div style="font-size:.68rem;color:#64748b">AI drafts compliance reports, summaries, client emails</div>
+          <div style="margin-top:8px;font-size:.65rem;background:rgba(245,158,11,.15);color:#f59e0b;padding:3px 8px;border-radius:8px;display:inline-block">2 hrs → 5 min</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px 12px;border-color:rgba(6,182,212,.3)">
+          <div style="font-size:1.8rem;margin-bottom:8px">⚙️</div>
+          <div style="font-size:.82rem;font-weight:700;color:#67e8f9;margin-bottom:4px">Workflow Automation</div>
+          <div style="font-size:.68rem;color:#64748b">Rules-based hand-offs automated end-to-end</div>
+          <div style="margin-top:8px;font-size:.65rem;background:rgba(6,182,212,.15);color:#22d3ee;padding:3px 8px;border-radius:8px;display:inline-block">Zero manual steps</div>
+        </div>
+      </div>
+      <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:12px;text-align:center;font-size:.85rem;color:#c4b5fd">
+        🔁 Employees shift from <b>data processors</b> → <b style="color:#a78bfa">knowledge supervisors</b>
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S21 ══════════════════════ -->
+  <div class="slide" id="s21">
+    <div class="orb" style="width:260px;height:260px;background:#ec4899;top:-60px;left:-60px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(236,72,153,.2)">❤️</div>
+      <div><div class="st">What AI Will NOT Replace</div><div class="sd">Human strengths that remain irreplaceable</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px;margin:0 auto 16px">
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">⚖️</div>
+          <div style="font-weight:700;color:#fca5a5;margin-bottom:6px">Judgment &amp; Complex Decisions</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">When stakes are high and context is complex, humans weigh ethics, relationships, and consequences that AI cannot fully grasp.</div>
+        </div>
+        <div style="background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.2);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">🤝</div>
+          <div style="font-weight:700;color:#f9a8d4;margin-bottom:6px">Empathy &amp; Negotiation</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Building trust, reading emotions, persuading stakeholders — these require genuine human connection and understanding.</div>
+        </div>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">🎨</div>
+          <div style="font-weight:700;color:#fcd34d;margin-bottom:6px">Creative Vision</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Breakthrough ideas, bold strategies, and original thinking driven by lived experience and human intuition.</div>
+        </div>
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">🛡️</div>
+          <div style="font-weight:700;color:#6ee7b7;margin-bottom:6px">Accountability</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Final responsibility, ethical ownership, and client-facing decisions still require a human to be accountable.</div>
+        </div>
+      </div>
+      <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:12px;text-align:center;color:#c4b5fd;font-size:.85rem;max-width:500px;margin:0 auto">
+        🤖 + 🧑 The real future: <b>Human + AI collaboration</b>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s22">
+    <div class="orb" style="width:280px;height:280px;background:#8b5cf6;bottom:-80px;right:-80px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">🎓</div>
+      <div><div class="st">The AI Skill Gap</div><div class="sd">The challenge — and opportunity — ahead</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:680px;margin:0 auto">
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#ef4444;margin-bottom:12px">⚠️ The Gap Today</div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Professionals using AI tools</span><span>22%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="22%" style="background:linear-gradient(90deg,#ef4444,#f97316)"></div></div>
+          </div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Companies with AI strategy</span><span>38%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="38%" style="background:linear-gradient(90deg,#ef4444,#f59e0b)"></div></div>
+          </div>
+          <div class="ibar-wrap">
+            <div class="ibar-label"><span>Employees with AI training</span><span>14%</span></div>
+            <div class="ibar-bg"><div class="ibar-fill" data-w="14%" style="background:linear-gradient(90deg,#dc2626,#ef4444)"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#10b981;margin-bottom:4px">✅ What Companies Need</div>
+          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#93c5fd">💻 <b>Use AI tools</b> to complete daily tasks faster</div>
+          <div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#c4b5fd">🔭 <b>Identify</b> automation opportunities in workflows</div>
+          <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#6ee7b7">📈 <b>Improve</b> team processes using AI capabilities</div>
+          <div style="background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#fcd34d;margin-top:4px">🎯 <b>This training program</b> addresses exactly this gap</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s23">
+    <div class="orb" style="width:280px;height:280px;background:#06b6d4;top:-70px;right:-70px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(6,182,212,.2)">🗺️</div>
+      <div><div class="st">AI Opportunity Map</div><div class="sd">Every department at FBSPL has AI potential</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;max-width:720px;margin:0 auto 16px">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">⚙️</div>
+          <div style="font-weight:700;color:#93c5fd;margin-bottom:6px">Operations</div>
+          <div style="font-size:.7rem;color:#64748b;line-height:1.5">Workflow automation, document processing, quality checks</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">👥</div>
+          <div style="font-weight:700;color:#c4b5fd;margin-bottom:6px">HR</div>
+          <div style="font-size:.7rem;color:#64748b;line-height:1.5">Resume screening, onboarding automation, policy Q&amp;A</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">💰</div>
+          <div style="font-weight:700;color:#6ee7b7;margin-bottom:6px">Finance</div>
+          <div style="font-size:.7rem;color:#64748b;line-height:1.5">Invoice processing, anomaly detection, forecasting</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">🎧</div>
+          <div style="font-weight:700;color:#fcd34d;margin-bottom:6px">Customer Support</div>
+          <div style="font-size:.7rem;color:#64748b;line-height:1.5">AI chatbots, ticket routing, sentiment analysis</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(6,182,212,.04));border:1px solid rgba(6,182,212,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">✅</div>
+          <div style="font-weight:700;color:#67e8f9;margin-bottom:6px">Quality Assurance</div>
+          <div style="font-size:.7rem;color:#64748b;line-height:1.5">Automated QA audits, compliance checks, error flagging</div>
+        </div>
+      </div>
+      <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:10px;text-align:center;font-size:.8rem;color:#c4b5fd;max-width:450px;margin:0 auto">
+        💡 Each department has multiple AI opportunities waiting to be unlocked
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s24">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-80px;right:-80px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">📘</div>
+      <div><div class="st">Case Study Deep Dive</div><div class="sd">A real-world example of AI transformation in an outsourcing firm</div></div>
+    </div>
+    <div class="sc">
+      <div style="max-width:600px;margin:0 auto;text-align:center">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.1));border:1.5px solid rgba(139,92,246,.3);border-radius:20px;padding:32px;margin-bottom:18px;box-shadow:0 0 40px rgba(59,130,246,.12)">
+          <div style="font-size:3rem;margin-bottom:12px">🏢</div>
+          <div style="font-size:1.3rem;font-weight:900;color:#f1f5f9;margin-bottom:6px">Mid-sized BPO Firm</div>
+          <div style="font-size:.85rem;color:#94a3b8;margin-bottom:18px">Insurance &amp; Financial Services Client — 200 employees</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div style="background:rgba(239,68,68,.12);border-radius:10px;padding:10px">
+              <div style="font-size:1.2rem;font-weight:900;color:#fca5a5">$2.4M</div>
+              <div style="font-size:.65rem;color:#64748b">Annual operational cost</div>
+            </div>
+            <div style="background:rgba(245,158,11,.12);border-radius:10px;padding:10px">
+              <div style="font-size:1.2rem;font-weight:900;color:#fcd34d">45 min</div>
+              <div style="font-size:.65rem;color:#64748b">Avg claim process time</div>
+            </div>
+            <div style="background:rgba(239,68,68,.12);border-radius:10px;padding:10px">
+              <div style="font-size:1.2rem;font-weight:900;color:#fca5a5">8.2%</div>
+              <div style="font-size:.65rem;color:#64748b">Error rate before AI</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:.9rem;color:#a78bfa;font-weight:700">👉 Let's see what happened after AI was introduced...</div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s25">
+    <div class="orb" style="width:280px;height:280px;background:#ef4444;bottom:-60px;left:-60px;opacity:.08"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(239,68,68,.2)">⏳</div>
+      <div><div class="st">Case Study: Before AI</div><div class="sd">The painful reality of manual operations</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:680px;margin:0 auto 14px">
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px;display:flex;align-items:start;gap:12px">
+          <span style="font-size:1.4rem;flex-shrink:0">📄</span>
+          <div><div style="font-weight:700;color:#fca5a5;font-size:.85rem;margin-bottom:4px">Manual Document Processing</div><div style="font-size:.72rem;color:#64748b">Every page read, typed, and filed by hand. 45 min per claim.</div></div>
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px;display:flex;align-items:start;gap:12px">
+          <span style="font-size:1.4rem;flex-shrink:0">✉️</span>
+          <div><div style="font-weight:700;color:#fca5a5;font-size:.85rem;margin-bottom:4px">Manual Email Drafting</div><div style="font-size:.72rem;color:#64748b">Each client email written from scratch. 10–15 min each.</div></div>
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px;display:flex;align-items:start;gap:12px">
+          <span style="font-size:1.4rem;flex-shrink:0">📉</span>
+          <div><div style="font-weight:700;color:#fca5a5;font-size:.85rem;margin-bottom:4px">Manual Report Creation</div><div style="font-size:.72rem;color:#64748b">Monthly compliance reports took 2–3 days of analyst time.</div></div>
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px;display:flex;align-items:start;gap:12px">
+          <span style="font-size:1.4rem;flex-shrink:0">📋</span>
+          <div><div style="font-weight:700;color:#fca5a5;font-size:.85rem;margin-bottom:4px">Manual Data Extraction</div><div style="font-size:.72rem;color:#64748b">Copy-pasting between systems, prone to errors. 8.2% error rate.</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:10px;text-align:center;font-size:.82rem;color:#fca5a5;max-width:500px;margin:0 auto">
+        😤 Result: <b>Slow turnaround, high errors, frustrated clients, high costs</b>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s26">
+    <div class="orb" style="width:280px;height:280px;background:#8b5cf6;top:-70px;right:-70px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(139,92,246,.2)">🛠️</div>
+      <div><div class="st">Case Study: AI Implementation</div><div class="sd">Three targeted AI tools introduced in 90 days</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:620px;margin:0 auto 14px">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px">
+          <div style="width:44px;height:44px;background:rgba(59,130,246,.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🔍</div>
+          <div>
+            <div style="font-weight:700;color:#93c5fd;font-size:.9rem;margin-bottom:4px">Document Analysis AI</div>
+            <div style="font-size:.75rem;color:#64748b">Auto-reads, extracts key fields, and summarises any document in under 30 seconds. Trained on insurance &amp; finance documents.</div>
+          </div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px">
+          <div style="width:44px;height:44px;background:rgba(16,185,129,.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">⚡</div>
+          <div>
+            <div style="font-weight:700;color:#6ee7b7;font-size:.9rem;margin-bottom:4px">Workflow Automation</div>
+            <div style="font-size:.75rem;color:#64748b">Rules-based routing of approvals, auto-generated email responses, zero-touch data transfer between systems.</div>
+          </div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px">
+          <div style="width:44px;height:44px;background:rgba(139,92,246,.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🧠</div>
+          <div>
+            <div style="font-weight:700;color:#c4b5fd;font-size:.9rem;margin-bottom:4px">AI Decision Support</div>
+            <div style="font-size:.75rem;color:#64748b">RAG-powered knowledge base: agents ask AI questions, get instant answers from company policy documents.</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:.8rem;color:#94a3b8;font-style:italic">Employees trained on all three tools during the same 90-day period</div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s27">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">📊</div>
+      <div>
+        <div class="st">Case Study Results</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:1.1rem;color:#cbd5e1;line-height:1.6;margin-bottom:24px;text-align:center;">
+        Operational impact:
+      </div>
+      <div class="g g2" style="grid-template-columns:1fr; gap:12px;"><div class="card" style="padding:16px"><div class="ct" style="font-size:1rem;color:#e2e8f0">⬇️ <b>Cost reduction:</b> 25–40%</div></div><div class="card" style="padding:16px"><div class="ct" style="font-size:1rem;color:#e2e8f0">⬆️ <b>Productivity increase:</b> 2–3×</div></div><div class="card" style="padding:16px"><div class="ct" style="font-size:1rem;color:#e2e8f0">⬇️ <b>Processing time reduction:</b> 50–70%</div></div><div class="card" style="padding:16px"><div class="ct" style="font-size:1rem;color:#e2e8f0">⬇️ <b>Error rate reduction:</b> 30–50%</div></div></div>
+      <div style="margin-top:24px;text-align:center;color:#94a3b8;font-size:0.95rem;background:rgba(255,255,255,0.05);padding:14px;border-radius:12px"><b>Key message:</b> AI improves speed, accuracy, and cost efficiency simultaneously.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S28 ══════════════════════ -->
+  <div class="slide" id="s28">
+    <div class="orb" style="width:280px;height:280px;background:#f59e0b;bottom:-60px;right:-60px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(245,158,11,.2)">⭐</div>
+      <div><div class="st">What This Means for FBSPL</div><div class="sd">The competitive opportunity is now</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px;margin:0 auto 16px">
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">📈</div>
+          <div style="font-weight:700;color:#6ee7b7;margin-bottom:6px">Higher Margins</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Lower operational cost per task means higher profit without raising client prices — a direct competitive advantage.</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">⚡</div>
+          <div style="font-weight:700;color:#93c5fd;margin-bottom:6px">Faster Delivery</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Clients get results in hours instead of days. Speed becomes a key differentiator in winning new business.</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">🤝</div>
+          <div style="font-weight:700;color:#c4b5fd;margin-bottom:6px">Stronger Retention</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Clients who see consistent AI-driven quality and speed become long-term partners — not just one-time clients.</div>
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:18px">
+          <div style="font-size:1.6rem;margin-bottom:8px">⚠️</div>
+          <div style="font-weight:700;color:#fca5a5;margin-bottom:6px">The Risk of Waiting</div>
+          <div style="font-size:.75rem;color:#64748b;line-height:1.6">Competitors adopting AI now will win on speed and cost. Waiting 2–3 years may be too late to catch up.</div>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:10px;text-align:center;font-size:.85rem;color:#fcd34d;max-width:480px;margin:0 auto">
+        ⏱️ The best time to start AI adoption was yesterday. The second best time is <b>today</b>.
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s29">
+    <div class="orb" style="width:280px;height:280px;background:#06b6d4;top:-60px;left:-60px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(6,182,212,.2)">📅</div>
+      <div><div class="st">What You Will Learn</div><div class="sd">Your 20-day AI transformation journey</div></div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:720px;margin:0 auto 16px">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">🧠</div>
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:#60a5fa;margin-bottom:4px">Week 1</div>
+          <div style="font-weight:700;color:#93c5fd;font-size:.82rem;margin-bottom:6px">AI Fundamentals</div>
+          <div style="font-size:.68rem;color:#64748b">Core concepts &amp; hands-on AI productivity tools (ChatGPT, Copilot)</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">📄</div>
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:#a78bfa;margin-bottom:4px">Week 2</div>
+          <div style="font-weight:700;color:#c4b5fd;font-size:.82rem;margin-bottom:6px">Document Intelligence</div>
+          <div style="font-size:.68rem;color:#64748b">AI reading, summarising &amp; extracting from documents</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.14),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">⚙️</div>
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:#34d399;margin-bottom:4px">Week 3</div>
+          <div style="font-weight:700;color:#6ee7b7;font-size:.82rem;margin-bottom:6px">Workflow Automation</div>
+          <div style="font-size:.68rem;color:#64748b">Building automated pipelines &amp; AI-assisted operations</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">💼</div>
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:#fbbf24;margin-bottom:4px">Week 4</div>
+          <div style="font-weight:700;color:#fcd34d;font-size:.82rem;margin-bottom:6px">AI Strategy</div>
+          <div style="font-size:.68rem;color:#64748b">Business case design, ROI, and AI roadmap for your team</div>
+        </div>
+      </div>
+      <div style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.25);border-radius:12px;padding:10px;text-align:center;font-size:.85rem;color:#67e8f9;max-width:480px;margin:0 auto">
+        🎯 <b>Goal:</b> Every participant becomes an AI-enabled professional
+      </div>
+    </div>
+  </div>
+
+
+  <div class="slide" id="s30">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🗣️</div>
+      <div>
+        <div class="st">Interactive Discussion</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:.9rem;color:#94a3b8;margin-bottom:16px;text-align:center">🎤 Think about your own daily work — answer these:</div>
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:620px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:18px 20px;cursor:pointer;transition:.25s" onclick="this.classList.toggle('expanded');this.querySelector('.disc-ans').style.display=this.classList.contains('expanded')?'block':'none'">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:1.6rem">🔁</div>
+            <div>
+              <div style="font-weight:700;color:#93c5fd;font-size:.9rem">What repetitive tasks do you perform daily?</div>
+              <div style="font-size:.72rem;color:#64748b;margin-top:2px">Click to reveal examples →</div>
+            </div>
+          </div>
+          <div class="disc-ans" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(59,130,246,.2);font-size:.8rem;color:#94a3b8">Examples: Data entry, copy-pasting between systems, filling forms, sending standard emails, updating spreadsheets</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:18px 20px;cursor:pointer;transition:.25s" onclick="this.classList.toggle('expanded');this.querySelector('.disc-ans').style.display=this.classList.contains('expanded')?'block':'none'">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:1.6rem">⏳</div>
+            <div>
+              <div style="font-weight:700;color:#fcd34d;font-size:.9rem">Which tasks take the most time?</div>
+              <div style="font-size:.72rem;color:#64748b;margin-top:2px">Click to reveal examples →</div>
+            </div>
+          </div>
+          <div class="disc-ans" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(245,158,11,.2);font-size:.8rem;color:#94a3b8">Examples: Reading long documents, preparing reports, researching answers to client questions, manual data reconciliation</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:18px 20px;cursor:pointer;transition:.25s" onclick="this.classList.toggle('expanded');this.querySelector('.disc-ans').style.display=this.classList.contains('expanded')?'block':'none'">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:1.6rem">📄</div>
+            <div>
+              <div style="font-weight:700;color:#c4b5fd;font-size:.9rem">Tasks involving reading or summarising documents?</div>
+              <div style="font-size:.72rem;color:#64748b;margin-top:2px">Click to reveal examples →</div>
+            </div>
+          </div>
+          <div class="disc-ans" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(139,92,246,.2);font-size:.8rem;color:#94a3b8">Examples: Policy documents, client emails, contracts, case notes — all can be summarised by AI in under 10 seconds</div>
+        </div>
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S31 ══════════════════════ -->
+  <div class="slide" id="s31">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🧠</div>
+      <div>
+        <div class="st">The Mindset Shift</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;max-width:640px;margin:20px auto">
+        <div style="background:linear-gradient(135deg,rgba(100,116,139,.15),rgba(100,116,139,.05));border:1px solid rgba(100,116,139,.3);border-radius:16px;padding:24px;text-align:center;transition:.3s" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="font-size:2.5rem;margin-bottom:10px;opacity:.5">😐</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:6px">Old Mindset</div>
+          <div style="font-size:1rem;font-weight:700;color:#94a3b8">"I complete tasks."</div>
+          <div style="font-size:.72rem;color:#475569;margin-top:8px">Execute → Repeat → Execute</div>
+        </div>
+        <div style="font-size:2.5rem;color:#8b5cf6;font-weight:900">→</div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(59,130,246,.1));border:1px solid rgba(139,92,246,.4);border-radius:16px;padding:24px;text-align:center;box-shadow:0 0 30px rgba(139,92,246,.2);transition:.3s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="font-size:2.5rem;margin-bottom:10px">🚀</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#a78bfa;margin-bottom:6px">New Mindset</div>
+          <div style="font-size:1rem;font-weight:700;color:#c4b5fd">"I design smarter workflows."</div>
+          <div style="font-size:.72rem;color:#7c3aed;margin-top:8px">Innovate → Automate → Scale</div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#94a3b8;font-size:.9rem;background:rgba(255,255,255,.05);padding:14px;border-radius:12px;max-width:500px;margin:20px auto 0">AI transforms employees from task executors into <b style="color:#a78bfa">process innovators</b> 🌟</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ S32 ══════════════════════ -->
+  <div class="slide" id="s32">
+    <div class="orb" style="width:300px;height:300px;background:#3b82f6;top:-100px;right:-100px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(59,130,246,.2)">🌟</div>
+      <div>
+        <div class="st">Your Role in the AI Era</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="font-size:.9rem;color:#94a3b8;margin-bottom:16px;text-align:center">The AI journey has three levels — where do you want to be?</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:680px;margin:0 auto 20px">
+        <div style="background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(59,130,246,.05));border:1px solid rgba(59,130,246,.3);border-radius:16px;padding:22px;text-align:center;transition:.3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:2.4rem;margin-bottom:10px">💻</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#60a5fa;margin-bottom:6px">Level 1</div>
+          <div style="font-size:1rem;font-weight:800;color:#93c5fd;margin-bottom:8px">AI User</div>
+          <div style="font-size:.73rem;color:#64748b;line-height:1.6">Uses ChatGPT, Copilot, and AI tools to do your daily tasks faster</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(139,92,246,.06));border:1.5px solid rgba(139,92,246,.4);border-radius:16px;padding:22px;text-align:center;box-shadow:0 0 24px rgba(139,92,246,.15);transition:.3s" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:2.4rem;margin-bottom:10px">🧪</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#a78bfa;margin-bottom:6px">Level 2</div>
+          <div style="font-size:1rem;font-weight:800;color:#c4b5fd;margin-bottom:8px">AI Experimenter</div>
+          <div style="font-size:.73rem;color:#64748b;line-height:1.6">Identifies new AI use cases for the team and tests new AI tools</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.3);border-radius:16px;padding:22px;text-align:center;transition:.3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:2.4rem;margin-bottom:10px">💡</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#10b981;margin-bottom:6px">Level 3</div>
+          <div style="font-size:1rem;font-weight:800;color:#6ee7b7;margin-bottom:8px">AI Innovator</div>
+          <div style="font-size:.73rem;color:#64748b;line-height:1.6">Designs AI-first workflows and drives transformation across the org</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:.9rem;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(236,72,153,.08));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px;color:#fcd34d;max-width:500px;margin:0 auto">
+        🌟 <b>Start at Level 1 today — aim for Level 3.</b><br><span style="color:#94a3b8;font-size:.78rem">Encourage curiosity and experimentation. Welcome to the cognitive era!</span>
+      </div>
+  </div>
+
+  </div>
+
+  <!-- ══════════════════════ S33 · DRAG GAME ══════════════════════ -->
+  <div class="slide" id="s33">
+    <div class="orb" style="width:350px;height:350px;background:#f59e0b;top:-120px;left:-120px;opacity:.1"></div>
+    <div class="sh">
+      <div class="si" style="background:rgba(245,158,11,.2)">🎮</div>
+      <div>
+        <div class="st">AI Sorting Challenge — Drag &amp; Drop</div>
+        <div class="sd">Drag each task into the correct category: AI, Analytics, or Automation</div>
+      </div>
+    </div>
+    <div class="sc">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;padding:14px;background:rgba(255,255,255,.04);border-radius:12px;border:1px dashed rgba(255,255,255,.1)">
+        <div class="draggable" draggable="true" data-cat="ai">🧠 Summarize a legal document</div>
+        <div class="draggable" draggable="true" data-cat="automation">⚙️ Auto-send invoice emails</div>
+        <div class="draggable" draggable="true" data-cat="analytics">📊 Monthly sales report</div>
+        <div class="draggable" draggable="true" data-cat="ai">🤖 Detect fraud in real-time</div>
+        <div class="draggable" draggable="true" data-cat="automation">🔄 Copy data between systems</div>
+        <div class="draggable" draggable="true" data-cat="analytics">📈 Identify performance trends</div>
+        <div class="draggable" draggable="true" data-cat="ai">✍️ Draft a personalised email</div>
+        <div class="draggable" draggable="true" data-cat="automation">📋 Fill a form from a spreadsheet</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div>
+          <div style="text-align:center;font-weight:700;color:#a78bfa;margin-bottom:8px;font-size:.9rem">🧠 AI</div>
+          <div class="drag-zone" data-accept="ai" data-count="3" style="min-height:110px"></div>
+        </div>
+        <div>
+          <div style="text-align:center;font-weight:700;color:#fcd34d;margin-bottom:8px;font-size:.9rem">📊 Analytics</div>
+          <div class="drag-zone" data-accept="analytics" data-count="2" style="min-height:110px"></div>
+        </div>
+        <div>
+          <div style="text-align:center;font-weight:700;color:#6ee7b7;margin-bottom:8px;font-size:.9rem">⚙️ Automation</div>
+          <div class="drag-zone" data-accept="automation" data-count="3" style="min-height:110px"></div>
+        </div>
+      </div>
+      <p style="text-align:center;color:#64748b;font-size:.73rem;margin-top:12px">🎉 Correctly sort all 8 items to trigger confetti!</p>
+    </div>
+  </div>
+
+
+  <!-- ══════ NAV ══════ -->
+  <div id="nav">
+    <button class="nb on" onclick="goTo(0)">🏠</button>
+    <button class="nb" onclick="goTo(1)">🌐 Landscape</button>
+    <button class="nb" onclick="goTo(2)">⚙️ ML Types</button>
+    <button class="nb" onclick="goTo(3)">🔗 Neural Nets</button>
+    <button class="nb" onclick="goTo(4)">📊 Algorithms</button>
+    <button class="nb" onclick="goTo(5)">✨ LLMs</button>
+    <button class="nb" onclick="goTo(6)">🧩 Terminology</button>
+    <button class="nb" onclick="goTo(7)">🚀 Use Cases</button>
+    <button class="nb" onclick="goTo(8)">🧠 Quiz</button>
+
+    <button class="nb" onclick="goTo(9)">1</button>
+    <button class="nb" onclick="goTo(10)">2</button>
+    <button class="nb" onclick="goTo(11)">3</button>
+    <button class="nb" onclick="goTo(12)">4</button>
+    <button class="nb" onclick="goTo(13)">5</button>
+    <button class="nb" onclick="goTo(14)">6</button>
+    <button class="nb" onclick="goTo(15)">7</button>
+    <button class="nb" onclick="goTo(16)">8</button>
+    <button class="nb" onclick="goTo(17)">9</button>
+    <button class="nb" onclick="goTo(18)">10</button>
+    <button class="nb" onclick="goTo(19)">11</button>
+    <button class="nb" onclick="goTo(20)">12</button>
+    <button class="nb" onclick="goTo(21)">13</button>
+    <button class="nb" onclick="goTo(22)">14</button>
+    <button class="nb" onclick="goTo(23)">15</button>
+    <button class="nb" onclick="goTo(24)">16</button>
+    <button class="nb" onclick="goTo(25)">17</button>
+    <button class="nb" onclick="goTo(26)">18</button>
+    <button class="nb" onclick="goTo(27)">19</button>
+    <button class="nb" onclick="goTo(28)">20</button>
+    <button class="nb" onclick="goTo(29)">21</button>
+    <button class="nb" onclick="goTo(30)">22</button>
+    <button class="nb" onclick="goTo(31)">23</button>
+    <button class="nb" onclick="goTo(32)">🎮 Game</button>
+  </div>
+
+  <script>
+    // ── NAVIGATION ──
+    const slides = document.querySelectorAll('.slide'), nbs = document.querySelectorAll('.nb');
+    const prog = document.getElementById('prog'), ctr = document.getElementById('ctr');
+    let cur = 0;
+    function goTo(i) {
+      slides[cur].classList.remove('active'); nbs[cur].classList.remove('on');
+      cur = i; slides[cur].classList.add('active'); nbs[cur].classList.add('on');
+      prog.style.width = ((cur + 1) / slides.length * 100) + '%';
+      ctr.textContent = (cur + 1) + ' / ' + slides.length;
+      if (i === 8 && !quizStarted) initQuiz();
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(Math.min(cur + 1, slides.length - 1)) }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(Math.max(cur - 1, 0)) }
+    });
+
+    // ── QUIZ ──
+    const Qs = [
+      { q: "What is a 'token' in the context of LLMs?", opts: ["A security authentication key", "The smallest unit of text the model processes", "A type of neural network layer", "A measure of model accuracy"], ans: 1, exp: "Tokens are roughly word-pieces (~4 chars). 'ChatGPT' = 1 token. Models have a max token limit called the context window." },
+      { q: "Which learning type uses NO labeled data?", opts: ["Supervised Learning", "Semi-Supervised Learning", "Unsupervised Learning", "Reinforcement Learning"], ans: 2, exp: "Unsupervised learning finds hidden patterns in raw, unlabeled data — like K-Means clustering or PCA." },
+      { q: "What does 'hallucination' mean in AI?", opts: ["The model generates images", "The model confidently produces false information", "The model runs too slowly", "The model needs more training"], ans: 1, exp: "Hallucination is when LLMs generate plausible-sounding but factually incorrect or fabricated content. A key limitation." },
+      { q: "The Transformer architecture introduced what key mechanism?", opts: ["Backpropagation", "Convolution filters", "Self-attention", "Recurrent memory cells"], ans: 2, exp: "Self-attention allows the model to weigh relationships between all tokens simultaneously — enabling parallel processing at massive scale." },
+      { q: "What does RAG stand for?", opts: ["Rapid AI Generation", "Retrieval-Augmented Generation", "Recursive Attention Grid", "Regularized Activation Gate"], ans: 1, exp: "RAG = Retrieval-Augmented Generation. It fetches relevant documents from a vector DB before generating, reducing hallucination." },
+      { q: "Temperature = 0 in an LLM means:", opts: ["The model is turned off", "Maximum creativity and randomness", "Fully deterministic — always picks most likely token", "The model is in training mode"], ans: 2, exp: "Temperature 0 = greedy decoding. Always picks the highest-probability next token. Best for factual, precise tasks." },
+      { q: "RLHF stands for:", opts: ["Recursive Learning from Helpful Feedback", "Reinforcement Learning from Human Feedback", "Regularized Loss for Helpful Features", "Real-time Learning for High-Fidelity"], ans: 1, exp: "RLHF = Reinforcement Learning from Human Feedback. Humans rank outputs; a reward model trains on those rankings; the LLM is fine-tuned with PPO." },
+      { q: "Which architecture powers image generation in models like DALL·E 3 and Stable Diffusion?", opts: ["CNN", "GAN", "RNN", "Diffusion Model"], ans: 3, exp: "Diffusion models learn to reverse a noise-adding process. They dominate modern image generation, outperforming GANs in quality." },
+      { q: "What is the 'context window' of an LLM?", opts: ["The training dataset size", "Max tokens the model can process at once", "The number of model parameters", "The GPU memory required"], ans: 1, exp: "Context window = the model's working memory. GPT-4 Turbo = 128K tokens; Claude 3.5 = 200K tokens. Longer context = can handle bigger documents." },
+      { q: "Which EU regulation specifically governs AI risk?", opts: ["GDPR", "EU AI Act", "Digital Markets Act", "NIS2 Directive"], ans: 1, exp: "The EU AI Act (2024) is the world's first comprehensive AI law, using a risk-based approach and banning certain high-risk AI uses." }
+    ];
+
+    let matchTotal=5,quizStarted = false, qIdx = 0, score = 0, answered = false;
+    function initQuiz() { quizStarted = true; qIdx = 0; score = 0; renderQ() }
+
+    function renderQ() {
+      const qi = document.getElementById('quizInner');
+      if (qIdx >= Qs.length) {
+        const pct = Math.round(score / Qs.length * 100);
+        const msg = pct >= 80 ? '🏆 Excellent!' : pct >= 60 ? '👍 Good job!' : '📚 Keep learning!';
+        qi.innerHTML = `<div class="q-card" style="text-align:center">
+      <div style="font-size:3rem;margin-bottom:8px">${msg}</div>
+      <div class="q-score-num">${score}/${Qs.length}</div>
+      <div style="font-size:.9rem;color:var(--muted);margin:8px 0 20px">${pct}% correct</div>
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;height:8px;overflow:hidden;margin-bottom:20px">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:10px;transition:width 1s"></div>
+      </div>
+      <button class="qbtn" onclick="qIdx=0;score=0;renderQ()">🔄 Retake Quiz</button>
+    </div>`;
+        return;
+      }
+      const q = Qs[qIdx]; answered = false;
+      qi.innerHTML = `<div class="q-card">
+    <div class="q-progress-bar"><div class="q-progress-fill" style="width:${(qIdx / Qs.length * 100)}%"></div></div>
+    <div class="q-num">Question ${qIdx + 1} of ${Qs.length}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="q-opts" id="qopts">
+      ${q.opts.map((o, i) => `<button class="qo" onclick="answer(${i})">${String.fromCharCode(65 + i)}. ${o}</button>`).join('')}
+    </div>
+    <div class="q-feedback" id="qfb"></div>
+    <div class="q-nav">
+      <button class="qbtn" id="nxtBtn" onclick="qIdx++;renderQ()" disabled>Next →</button>
+    </div>
+  </div>`;
+    }
+
+    function answer(i) {
+      if (answered) return; answered = true;
+      const q = Qs[qIdx], opts = document.querySelectorAll('.qo'), fb = document.getElementById('qfb');
+      opts.forEach(o => o.disabled = true);
+      if (i === q.ans) { score++; opts[i].classList.add('correct'); fb.innerHTML = `✅ <b>Correct!</b> ${q.exp}`; fb.style.color = '#6ee7b7' }
+      else { opts[i].classList.add('wrong'); opts[q.ans].classList.add('correct'); fb.innerHTML = `❌ <b>Not quite.</b> ${q.exp}`; fb.style.color = '#fca5a5' }
+      document.getElementById('nxtBtn').disabled = false;
+    }
+
+    prog.style.width = '10%';
+    setTimeout(()=>{ const tw=document.getElementById('tw1'); if(tw) typeWrite(tw,'Welcome to the AI Revolution...'); },600);
+
+    // ── PARTICLE SYSTEM ──
+    function spawnParticles(el, n=12) {
+      for(let i=0;i<n;i++){
+        const p=document.createElement('div'); p.className='particle';
+        const s=Math.random()*8+4; p.style.cssText=`width:${s}px;height:${s}px;background:hsl(${Math.random()*360},70%,65%);left:${Math.random()*100}%;bottom:-20px;animation-duration:${Math.random()*6+5}s;animation-delay:${Math.random()*4}s`;
+        el.appendChild(p);
+        setTimeout(()=>p.remove(),(Math.random()*6+5)*1000+4000);
+      }
+    }
+    document.querySelectorAll('.slide').forEach(s=>spawnParticles(s,8));
+
+    // ── CONFETTI BURST ──
+    function confetti(n=60){
+      const colors=['#3b82f6','#8b5cf6','#ec4899','#10b981','#f59e0b','#06b6d4','#f472b6'];
+      for(let i=0;i<n;i++){
+        const p=document.createElement('div'); p.className='confetti-piece';
+        p.style.cssText=`left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*2+1.5}s;animation-delay:${Math.random()*.5}s;transform:rotate(${Math.random()*360}deg)`;
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(),3000);
+      }
+    }
+
+    // ── ANIMATED BARS ── (trigger on slide enter)
+    function animateBars(slideEl){
+      slideEl.querySelectorAll('.ibar-fill').forEach(b=>{
+        const w=b.dataset.w||'70%'; b.style.width='0';
+        setTimeout(()=>b.style.width=w,100);
+      });
+    }
+
+    // ── ANIMATED COUNTERS ──
+    function animateCounters(slideEl){
+      slideEl.querySelectorAll('.count-num').forEach(el=>{
+        const target=parseFloat(el.dataset.target||0), isFloat=el.dataset.float==='1';
+        let start=0, dur=1800, step=16;
+        const inc=target/(dur/step);
+        const timer=setInterval(()=>{
+          start=Math.min(start+inc,target);
+          el.textContent=isFloat?start.toFixed(1):Math.round(start).toLocaleString();
+          if(start>=target)clearInterval(timer);
+        },step);
+      });
+    }
+
+    // ── TYPEWRITER ──
+    function typeWrite(el,text,speed=45){
+      el.textContent=''; let i=0;
+      const t=setInterval(()=>{
+        el.textContent+=text[i++];
+        if(i>=text.length)clearInterval(t);
+      },speed);
+    }
+
+    // ── MATCH GAME ENGINE ──
+    let matchSel=null, matchScore=0;
+    function mgSelect(el, group, id){
+      const allInGroup=document.querySelectorAll('[data-mg-group="'+group+'"]');
+      if(el.classList.contains('matched'))return;
+      if(matchSel && matchSel.dataset.mgGroup!==group){
+        // check pair
+        if(matchSel.dataset.mgId===id){
+          matchSel.classList.add('matched'); el.classList.add('matched');
+          matchScore++; matchSel=null;
+          document.querySelectorAll('.mg-score').forEach(s=>s.textContent='✅ Matched: '+matchScore+' / '+matchTotal);
+          if(matchScore>=matchTotal){ setTimeout(()=>{ confetti(); document.querySelectorAll('.mg-score').forEach(s=>s.textContent='🎉 Perfect! All matched!'); },200); }
+        } else {
+          el.classList.add('wrong'); matchSel.classList.add('wrong');
+          const ms=matchSel; setTimeout(()=>{ el.classList.remove('wrong'); ms.classList.remove('wrong'); },600);
+          matchSel=null;
+        }
+      } else {
+        if(matchSel){ matchSel.classList.remove('selected'); }
+        matchSel=el; el.classList.add('selected');
+      }
+    }
+
+    // ── DRAG GAME ENGINE ──
+    let dragEl=null;
+    document.addEventListener('dragstart',e=>{ if(e.target.classList.contains('draggable')){ dragEl=e.target; e.target.style.opacity='.5'; }});
+    document.addEventListener('dragend',e=>{ if(e.target.classList.contains('draggable')) e.target.style.opacity='1'; dragEl=null; });
+    document.addEventListener('dragover',e=>{ const z=e.target.closest('.drag-zone'); if(z){ e.preventDefault(); z.classList.add('over'); }});
+    document.addEventListener('dragleave',e=>{ const z=e.target.closest('.drag-zone'); if(z) z.classList.remove('over'); });
+    document.addEventListener('drop',e=>{
+      const z=e.target.closest('.drag-zone');
+      if(z && dragEl){
+        e.preventDefault(); z.classList.remove('over');
+        const accept=z.dataset.accept, cat=dragEl.dataset.cat;
+        if(cat===accept){ dragEl.classList.add('drag-success'); z.appendChild(dragEl); 
+          const allZones=document.querySelectorAll('.drag-zone');
+          const allMatched=[...allZones].every(dz=>{
+            const expected=parseInt(dz.dataset.count||'1');
+            return dz.querySelectorAll('.draggable.drag-success').length>=expected;
+          });
+          if(allMatched) setTimeout(confetti,200);
+        } else { dragEl.classList.add('wrong'); setTimeout(()=>dragEl.classList.remove('wrong'),500); }
+      }
+    });
+
+    // override goTo to trigger animations
+    const _goTo = goTo;
+    goTo = function(i){
+      _goTo(i);
+      const sl=slides[i];
+      setTimeout(()=>{ animateBars(sl); animateCounters(sl); },200);
+      // typewriter on specific slides
+      sl.querySelectorAll('[data-type]').forEach(el=>typeWrite(el,el.dataset.type));
+    };
+
+  </script>
+</body>
+
+</html>
